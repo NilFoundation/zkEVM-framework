@@ -34,6 +34,39 @@ cmake --build build
 
 ## Test
 
+### Configure tests
+
+Configure with tests enabled:
+
+```bash
+cmake -B ${BUILD_DIR:-build} -DENABLE_TESTS=TRUE ...
+```
+
+When configuring with enabled tests, you can specify, which tests to enable. By default all tests are enabled.
+
+```bash
+# SSZ tests won't be enabled
+cmake -B ${BUILD_DIR:-build} -DENABLE_TESTS=TRUE -DENABLE_SSZ_TESTS=FALSE ...
+```
+
+### Build tests
+
+```bash
+cmake --build ${BUILD_DIR:-build}
+```
+
+When using `Ninja` generator, you can build only tests using target `tests/all`:
+
+```bash
+cmake --build ${BUILD_DIR:-build} -t tests/all
+```
+
+### Run tests
+
+```bash
+ctest --test-dir ${BUILD_DIR:-build}/tests
+```
+
 ## Usage
 
 ```plain
