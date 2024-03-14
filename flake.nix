@@ -25,7 +25,7 @@
 
         in
         pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [ cmake ninja ];
+          nativeBuildInputs = with pkgs; [ cmake ninja gtest ];
           buildInputs = [ sszpp ];
         };
     in
