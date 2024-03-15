@@ -21,3 +21,4 @@ function(add_ssz_test target)
 endfunction()
 
 add_ssz_test(fixed_size_serialization)
+add_ssz_test(variable_size_serialization)
