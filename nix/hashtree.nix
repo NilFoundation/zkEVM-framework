@@ -15,5 +15,12 @@ stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
+  # Without this GNU linker 2.39+ will produce a warning:
+  # ld: warning: sha256_shani.o: missing .note.GNU-stack section implies executable stack
+  # ld: NOTE: This behaviour is deprecated and will be removed in a future version of the linker
+  patches = [
+    ./patches/hashtree-execstack-fix.diff
+  ];
+
   makeFlags = [ "DESTDIR=$(out)" "PREFIX=" ];
 }
