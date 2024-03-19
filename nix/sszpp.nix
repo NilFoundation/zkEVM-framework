@@ -19,6 +19,11 @@ stdenv.mkDerivation {
     "-DCMAKE_CXX_STANDARD=23"
   ];
 
+  # Error in definition of this function leads to multiple definition error on linking
+  patches = [
+    ./patches/sszpp-merkleize-fix.diff
+  ];
+
   propagatedBuildInputs = [
     intx
     hashtree

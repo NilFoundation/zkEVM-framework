@@ -600,12 +600,6 @@ TSWLatexianTemp*
 # Logs
 *.log
 
-# Patch files
-*.patch
-*.diff
-*.orig
-*.rej
-
 # Cache and temporary files
 *.pyc
 .DS_Store

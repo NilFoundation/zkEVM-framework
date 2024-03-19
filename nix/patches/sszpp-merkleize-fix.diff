@@ -1,0 +1,13 @@
+diff --git a/lib/merkleize.hpp b/lib/merkleize.hpp
+index d64c089..c6d0012 100644
+--- a/lib/merkleize.hpp
++++ b/lib/merkleize.hpp
+@@ -100,7 +100,7 @@ namespace _detail {
+  * It is faster to loop over computing the actual size than overestimating using logarithms and allocating unnecessary
+  * memory
+  */
+-auto compute_hashtree_size(std::size_t chunk_count, std::size_t depth) {
++static auto compute_hashtree_size(std::size_t chunk_count, std::size_t depth) {
+     std::size_t ret{};
+     if (depth == 0) return BYTES_PER_CHUNK;
+     while (depth > 0) {
