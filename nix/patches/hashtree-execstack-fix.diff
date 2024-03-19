@@ -1,0 +1,15 @@
+diff --git a/src/sha256_shani.S b/src/sha256_shani.S
+index 6599e02..cabc11f 100644
+--- a/src/sha256_shani.S
++++ b/src/sha256_shani.S
+@@ -973,5 +973,9 @@ hashtree_sha256_shani_x2:
+ 	movdqa		xmm15, [rsp + 9*16]
+ #endif
+ 	add		rsp, frame_size
+-	ret	
++	ret 
++#ifdef __linux__ 
++.size hashtree_sha256_shani_x2,.-hashtree_sha256_shani_x2
++.section .note.GNU-stack,"",@progbits
++#endif
+ #endif
