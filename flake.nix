@@ -25,7 +25,7 @@
 
         in
         pkgs.mkShell {
-          nativeBuildInputs = with pkgs; [ cmake ninja gtest doxygen ];
+          nativeBuildInputs = with pkgs; [ cmake ninja gtest doxygen clang_17 ];
           buildInputs = [ sszpp ];
         };
     in
