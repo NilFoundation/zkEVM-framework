@@ -67,6 +67,23 @@ cmake --build ${BUILD_DIR:-build} -t tests/all
 ctest --test-dir ${BUILD_DIR:-build}/tests
 ```
 
+## Build API documentation
+
+zkEVM-framework is using Doxygen to generate API documentaion.
+To build it, firts enable building documentation at configuration:
+
+```bash
+cmake -B ${BUILD_DIR:-build} -DBUILD_DOCS=TRUE ...
+```
+
+Then build documentation:
+
+```bash
+cmake -B ${BUILD_DIR:-build} -t docs
+```
+
+To see HTML documentation, open `${BUILD_DIR}/html`.
+
 ## Usage
 
 ```plain
