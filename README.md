@@ -8,6 +8,10 @@ Framework for test verification of state of claster based on EVM
 * EVM assigner
 * Proof generator
 
+### Libraries
+
+* `data_types` - definitions of data structures used for verification
+
 ## Dependencies
 
 ### SSZ
