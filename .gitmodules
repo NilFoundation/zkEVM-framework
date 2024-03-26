@@ -1,0 +1,3 @@
+[submodule "assigner"]
+	path = libs/assigner
+	url = ../../NilFoundation/evm-assigner

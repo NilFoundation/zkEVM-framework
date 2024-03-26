@@ -61,6 +61,11 @@ To activate development environment run:
 ```bash
 nix develop
 ```
+## Clone
+
+```plain
+git clone --recurse-submodules https://github.com/NilFoundation/zkEVM-framework.git
+```
 
 If you want Nix to use your local version of dependency instead of cloning it from GitHub,
 you can use `--override-input`. E.g. if you want to use your local evm-assigner, use this:
@@ -82,6 +87,24 @@ Or with Nix:
 
 ```bash
 nix build
+```
+## Assigner executable
+
+### Build dependency
+
+```bash
+cd libs/assigner
+cmake -G "Ninja" -B build .
+cmake --build build
+cmake --install build
+cd ../..
+```
+
+### Build executable
+
+```bash
+cmake -G "Ninja" -B build
+cmake --build build
 ```
 
 ## Test
