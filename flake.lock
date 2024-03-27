@@ -1,12 +1,44 @@
 {
   "nodes": {
+    "hashtree": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1709057947,
+        "narHash": "sha256-v+aUS7WThaxD+QihFGVPhAkn6NhJU8Nsa4Mww3zJp6g=",
+        "owner": "prysmaticlabs",
+        "repo": "hashtree",
+        "rev": "289330e9ffafec9ca64bbbb2a30cd3bbce4a00dc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "prysmaticlabs",
+        "repo": "hashtree",
+        "type": "github"
+      }
+    },
+    "intx": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1704400684,
+        "narHash": "sha256-XNpSO++FuG27Bgf5My9eJ/zrQlsWcGajfq4Y2UI2Kpk=",
+        "owner": "chfast",
+        "repo": "intx",
+        "rev": "e0732242e36b3bb08cc8cc23445b2bee7c28b9d0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "chfast",
+        "repo": "intx",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1710180773,
-        "narHash": "sha256-RSfzyHFRdJZ6AIqm3IeSEVoSQh+mpphqQhfcge4bh1o=",
+        "lastModified": 1711530986,
+        "narHash": "sha256-W0pD/ZliwT7R/oVjF9JSfYIxG6NloHHxRrwt5AK0hR4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "587a40f999028a5b236c0963f0cca20bdb8e0c9d",
+        "rev": "d290cbaca5fd26bf8a67c9e9d11c6d2e404af5d5",
         "type": "github"
       },
       "original": {
@@ -17,7 +49,26 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "hashtree": "hashtree",
+        "intx": "intx",
+        "nixpkgs": "nixpkgs",
+        "sszpp": "sszpp"
+      }
+    },
+    "sszpp": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1692636641,
+        "narHash": "sha256-310yiR02zAQ9v6TIdOYDuS7lVQJRhAeIEzaeVEGnMDA=",
+        "owner": "OffchainLabs",
+        "repo": "sszpp",
+        "rev": "ec97d8976d7f0a78eccbf59cab59eae4cf508ca9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "OffchainLabs",
+        "repo": "sszpp",
+        "type": "github"
       }
     }
   },

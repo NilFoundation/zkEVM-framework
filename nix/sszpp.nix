@@ -1,13 +1,8 @@
-{ pkgs, stdenv, intx, hashtree, ... }:
+{ repo, pkgs, stdenv, enable_debug, intx, hashtree, ... }:
 stdenv.mkDerivation {
   name = "sszpp";
 
-  src = pkgs.fetchFromGitHub {
-    owner = "OffchainLabs";
-    repo = "sszpp";
-    rev = "ec97d8976d7f0a78eccbf59cab59eae4cf508ca9";
-    hash = "sha256-310yiR02zAQ9v6TIdOYDuS7lVQJRhAeIEzaeVEGnMDA=";
-  };
+  src = repo;
 
   env.NIX_CFLAGS_COMPILE = "-Wno-error=format-security";
 
@@ -23,6 +18,9 @@ stdenv.mkDerivation {
   patches = [
     ./patches/sszpp-merkleize-fix.diff
   ];
+
+  doCheck = true;
+  dontStrip = enable_debug;
 
   propagatedBuildInputs = [
     intx

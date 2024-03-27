@@ -1,13 +1,8 @@
-{ pkgs, lib, stdenv, ... }:
+{ repo, pkgs, lib, stdenv, enable_debug, ... }:
 stdenv.mkDerivation {
   name = "hashtree";
 
-  src = pkgs.fetchFromGitHub {
-    owner = "prysmaticlabs";
-    repo = "hashtree";
-    rev = "289330e9ffafec9ca64bbbb2a30cd3bbce4a00dc";
-    hash = "sha256-v+aUS7WThaxD+QihFGVPhAkn6NhJU8Nsa4Mww3zJp6g=";
-  };
+  src = repo;
 
   outputs = [ "out" ];
 
@@ -23,4 +18,7 @@ stdenv.mkDerivation {
   ];
 
   makeFlags = [ "DESTDIR=$(out)" "PREFIX=" ];
+
+  doCheck = true;
+  dontStrip = enable_debug;
 }
