@@ -36,6 +36,12 @@ cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release .
 cmake --build build
 ```
 
+Or with Nix:
+
+```bash
+nix build
+```
+
 ## Test
 
 ### Configure tests
@@ -49,8 +55,8 @@ cmake -B ${BUILD_DIR:-build} -DENABLE_TESTS=TRUE ...
 When configuring with enabled tests, you can specify, which tests to enable. By default all tests are enabled.
 
 ```bash
-# SSZ tests won't be enabled
-cmake -B ${BUILD_DIR:-build} -DENABLE_TESTS=TRUE -DENABLE_SSZ_TESTS=FALSE ...
+# Data types tests won't be enabled
+cmake -B ${BUILD_DIR:-build} -DENABLE_TESTS=TRUE -DENABLE_DATA_TYPES_TESTS=FALSE ...
 ```
 
 ### Build tests
@@ -69,6 +75,12 @@ cmake --build ${BUILD_DIR:-build} -t tests/all
 
 ```bash
 ctest --test-dir ${BUILD_DIR:-build}/tests
+```
+
+When using Nix, you can configure, build and run tests with:
+
+```bash
+nix flake check
 ```
 
 ## Build API documentation
