@@ -1,3 +1,8 @@
+/**
+ * @file transaction_receipt.hpp
+ * @brief This file defines Transaction receipt.
+ */
+
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_TRANSACTION_RECEIPT_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_TRANSACTION_RECEIPT_HPP_
 
@@ -8,6 +13,7 @@
 #include "zkevm_framework/data_types/transaction.hpp"
 
 namespace data_types {
+    /// @brief Transaction receipt.
     class TransactionReceipt {
       public:
         friend class Block;

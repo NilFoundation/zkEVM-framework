@@ -1,3 +1,8 @@
+/**
+ * @file transaction.hpp
+ * @brief This file defines Transaction.
+ */
+
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_TRANSACTION_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_TRANSACTION_HPP_
 
@@ -7,7 +12,7 @@
 #include "zkevm_framework/data_types/base.hpp"
 
 namespace data_types {
-    /// @brief Ethereum transaction.
+    /// @brief Transaction.
     class Transaction {
       public:
         friend class Block;

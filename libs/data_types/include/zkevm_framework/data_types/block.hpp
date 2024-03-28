@@ -1,6 +1,6 @@
 /**
  * @file block.hpp
- * @brief This file defines Ethereum block.
+ * @brief This file defines Block.
  */
 
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_BLOCK_HPP_
@@ -15,7 +15,7 @@
 #include "zkevm_framework/data_types/transaction_receipt.hpp"
 
 namespace data_types {
-    /// @brief Ethereum block.
+    /// @brief Block.
     class Block {
       public:
         /// @brief empty block
