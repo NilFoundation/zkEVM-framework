@@ -1,6 +1,6 @@
 /**
  * @file block_header.hpp
- * @brief This file defines Ethereum block header.
+ * @brief This file defines Block header.
  */
 
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_BLOCK_HEADER_HPP_
@@ -14,7 +14,7 @@
 #include "zkevm_framework/data_types/transaction.hpp"
 
 namespace data_types {
-    /// @brief Ethereum block header.
+    /// @brief Block header.
     class BlockHeader {
       public:
         friend class Block;
