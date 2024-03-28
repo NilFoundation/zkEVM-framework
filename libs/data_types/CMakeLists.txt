@@ -10,6 +10,7 @@ set(SOURCES
     src/account.cpp
     src/block.cpp
     src/block_header.cpp
+    src/message.cpp
     src/state.cpp
     src/transaction.cpp
     src/transaction_receipt.cpp)
@@ -22,6 +23,7 @@ set(PUBLIC_HEADERS
     include/${PUBLIC_HEADERS_PREFIX}/base.hpp
     include/${PUBLIC_HEADERS_PREFIX}/block.hpp
     include/${PUBLIC_HEADERS_PREFIX}/block_header.hpp
+    include/${PUBLIC_HEADERS_PREFIX}/message.hpp
     include/${PUBLIC_HEADERS_PREFIX}/state.hpp
     include/${PUBLIC_HEADERS_PREFIX}/transaction.hpp
     include/${PUBLIC_HEADERS_PREFIX}/transaction_receipt.hpp)
