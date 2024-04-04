@@ -8,6 +8,7 @@ find_package(sszpp REQUIRED)
 set(LIBRARY_NAME zkEVMDataTypes)
 set(SOURCES
     src/account.cpp
+    src/account_block.cpp
     src/block.cpp
     src/block_header.cpp
     src/message.cpp
@@ -20,10 +21,12 @@ add_library(${LIBRARY_NAME} STATIC ${SOURCES})
 set(PUBLIC_HEADERS_PREFIX zkevm_framework/data_types)
 set(PUBLIC_HEADERS
     include/${PUBLIC_HEADERS_PREFIX}/account.hpp
+    include/${PUBLIC_HEADERS_PREFIX}/account_block.hpp
     include/${PUBLIC_HEADERS_PREFIX}/base.hpp
     include/${PUBLIC_HEADERS_PREFIX}/block.hpp
     include/${PUBLIC_HEADERS_PREFIX}/block_header.hpp
     include/${PUBLIC_HEADERS_PREFIX}/message.hpp
+    include/${PUBLIC_HEADERS_PREFIX}/mpt.hpp
     include/${PUBLIC_HEADERS_PREFIX}/state.hpp
     include/${PUBLIC_HEADERS_PREFIX}/transaction.hpp
     include/${PUBLIC_HEADERS_PREFIX}/transaction_receipt.hpp)

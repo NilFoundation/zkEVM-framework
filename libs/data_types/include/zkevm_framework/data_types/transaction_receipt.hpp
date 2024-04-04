@@ -18,14 +18,13 @@ namespace data_types {
       public:
         friend class Block;
 
-        TransactionReceipt() {}
+        Transaction::Type m_type;
+        /// @brief Root hash of the state after this transaction
+        Hash m_stateRoot;
+        size_t m_gasUsed;
 
-        TransactionReceipt(Transaction::Type type, Hash _root, size_t gasUsed)
-            : m_type(type), m_stateRoot(_root), m_gasUsed(gasUsed) {}
-
-        Transaction::Type getType() const { return m_type; }
-        Hash const& stateRoot() const { return m_stateRoot; }
-        size_t const& gasUsed() const { return m_gasUsed; }
+        TransactionReceipt(Transaction::Type type, Hash root, size_t gasUsed)
+            : m_type(type), m_stateRoot(root), m_gasUsed(gasUsed) {}
 
         /// @returns the SSZ serialization of transaction receipt
         bytes serialize() const;
@@ -34,12 +33,6 @@ namespace data_types {
         static TransactionReceipt deserialize(const bytes& src);
 
       private:
-        Transaction::Type m_type;
-        /// Root hash of the state after this transaction
-        Hash m_stateRoot;
-        size_t m_gasUsed;
-
-        /// @brief Serializable mirroring structure of `TransactionReceipt`.
         struct Serializable : ssz::ssz_container {
             uint8_t m_type;
             Hash m_stateRoot;

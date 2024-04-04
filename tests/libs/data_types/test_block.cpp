@@ -2,95 +2,72 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "zkevm_framework/data_types/account_block.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/block_header.hpp"
-#include "zkevm_framework/data_types/transaction.hpp"
-#include "zkevm_framework/data_types/transaction_receipt.hpp"
+#include "zkevm_framework/data_types/message.hpp"
+#include "zkevm_framework/data_types/mpt.hpp"
 
 using namespace data_types;
 
 TEST(DataTypesBlockTests, SerializeDeserializeBlock) {
-    bytes data = {std::byte{0xAA}, std::byte{0xAA}, std::byte{0xAA}};
-    Transaction transaction_(1, 2, 3, data, 5);
-    transaction_.forceSender({0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                              0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A});
+    bytes data = {std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}};
+    size_t value = 42;
+    Address addr = {0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+                    0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A};
 
-    TransactionReceipt receipt_(Transaction::ContractCreation, 0, 1);
+    BlockHeader prev_hdr(0, 1, 2, 3, data, 5);
+    BlockHeader curr_hdr(0, 1, 2, 3, data, 5);
+    Transaction transaction(Transaction::Type::ContractCreation, 1, 2, addr, 3, 4, data, addr);
+    MPTNode<Transaction> transactions = {};
+    transactions.push_back(transaction);
+    AccountBlock account_block(addr, transactions);
+    MPTNode<AccountBlock> account_blocks = {};
+    account_blocks.push_back(account_block);
+    CommonMsgInfo msg_info(addr, addr, value);
+    InMsg in_msg(msg_info);
+    OutMsg out_msg(msg_info);
 
-    bytes prev_data = {std::byte{0xBB}, std::byte{0xBB}, std::byte{0xBB}};
-    Address prev_author = {0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                           0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A};
-    BlockHeader prev_hdr(0, 0, 0, 0, 1, 2, 3, prev_data, prev_author, 5);
-
-    bytes curr_data = {std::byte{0xCC}, std::byte{0xCC}, std::byte{0xCC}};
-    Address curr_author = {0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
-                           0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B};
-    BlockHeader curr_hdr(0, 0, 0, 0, 1, 2, 3, curr_data, curr_author, 5);
-
-    Block b({transaction_}, {receipt_}, prev_hdr, curr_hdr);
+    Block b(account_blocks, in_msg, out_msg, prev_hdr, curr_hdr);
     bytes blob = b.serialize();
 
     Block block = Block::deserialize(blob);
 
-    auto transactions = block.getTransactions();
-    EXPECT_EQ(transactions.size(), 1);
+    EXPECT_EQ(block.m_accountBlocks.size(), 1);
+    AccountBlock acc_block = block.m_accountBlocks[0];
 
-    auto receipts = block.getReceipts();
-    EXPECT_EQ(receipts.size(), 1);
+    EXPECT_EQ(acc_block.m_accountAddress, addr);
+    EXPECT_EQ(acc_block.m_transactions.size(), 1);
+    Transaction t = acc_block.m_transactions[0];
+    EXPECT_EQ(t.m_type, Transaction::Type::ContractCreation);
+    EXPECT_EQ(t.m_nonce, 1);
+    EXPECT_EQ(t.m_value, 2);
+    EXPECT_EQ(t.m_gasPrice, 3);
+    EXPECT_EQ(t.m_gas, 4);
+    EXPECT_THAT(t.m_receiveAddress, testing::ElementsAreArray(addr));
+    EXPECT_THAT(t.m_sender, testing::ElementsAreArray(addr));
+    EXPECT_THAT(t.m_data, testing::ElementsAreArray(data));
 
-    auto transaction = transactions[0];
+    EXPECT_EQ(block.m_currentBlock.m_parentHash, 0);
+    EXPECT_EQ(block.m_currentBlock.m_number, 1);
+    EXPECT_EQ(block.m_currentBlock.m_gasLimit, 2);
+    EXPECT_EQ(block.m_currentBlock.m_gasUsed, 3);
+    EXPECT_THAT(block.m_currentBlock.m_extraData, testing::ElementsAreArray(data));
+    EXPECT_EQ(block.m_currentBlock.m_timestamp, 5);
 
-    EXPECT_THAT(transaction.sender(),
-                testing::ElementsAre(0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                                     0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A));
-    ASSERT_TRUE(transaction.isCreation());
-    EXPECT_EQ(transaction.value(), 1);
-    EXPECT_EQ(transaction.gasPrice(), 2);
-    EXPECT_EQ(transaction.gas(), 3);
-    EXPECT_THAT(transaction.to(),
-                testing::ElementsAre(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
-    EXPECT_THAT(transaction.from(),
-                testing::ElementsAre(0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                                     0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A));
-    EXPECT_THAT(transaction.data(),
-                testing::ElementsAre(std::byte{0xAA}, std::byte{0xAA}, std::byte{0xAA}));
-    EXPECT_EQ(transaction.nonce(), 5);
+    EXPECT_EQ(block.m_previousBlock.m_parentHash, 0);
+    EXPECT_EQ(block.m_previousBlock.m_number, 1);
+    EXPECT_EQ(block.m_previousBlock.m_gasLimit, 2);
+    EXPECT_EQ(block.m_previousBlock.m_gasUsed, 3);
+    EXPECT_THAT(block.m_previousBlock.m_extraData, testing::ElementsAreArray(data));
+    EXPECT_EQ(block.m_previousBlock.m_timestamp, 5);
 
-    auto receipt = receipts[0];
+    EXPECT_EQ(block.m_inputMsg.m_info.m_src, addr);
+    EXPECT_EQ(block.m_inputMsg.m_info.m_dst, addr);
+    EXPECT_EQ(block.m_inputMsg.m_info.m_value, value);
 
-    EXPECT_EQ(receipt.gasUsed(), 1);
-    EXPECT_EQ(receipt.stateRoot(), 0);
-    EXPECT_EQ(receipt.getType(), Transaction::ContractCreation);
-
-    auto curr_block = block.getCurrentBlock();
-    EXPECT_EQ(curr_block.parentHash(), 0);
-    EXPECT_EQ(curr_block.stateRoot(), 0);
-    EXPECT_EQ(curr_block.transactionsRoot(), 0);
-    EXPECT_EQ(curr_block.receiptsRoot(), 0);
-    EXPECT_EQ(curr_block.number(), 1);
-    EXPECT_EQ(curr_block.gasLimit(), 2);
-    EXPECT_EQ(curr_block.gasUsed(), 3);
-    EXPECT_THAT(curr_block.extraData(),
-                testing::ElementsAre(std::byte{0xCC}, std::byte{0xCC}, std::byte{0xCC}));
-    EXPECT_THAT(curr_block.author(),
-                testing::ElementsAre(0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
-                                     0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B));
-    EXPECT_EQ(curr_block.timestamp(), 5);
-
-    auto prev_block = block.getPreviousBlock();
-    EXPECT_EQ(prev_block.parentHash(), 0);
-    EXPECT_EQ(prev_block.stateRoot(), 0);
-    EXPECT_EQ(prev_block.transactionsRoot(), 0);
-    EXPECT_EQ(prev_block.receiptsRoot(), 0);
-    EXPECT_EQ(prev_block.number(), 1);
-    EXPECT_EQ(prev_block.gasLimit(), 2);
-    EXPECT_EQ(prev_block.gasUsed(), 3);
-    EXPECT_THAT(prev_block.extraData(),
-                testing::ElementsAre(std::byte{0xBB}, std::byte{0xBB}, std::byte{0xBB}));
-    EXPECT_THAT(prev_block.author(),
-                testing::ElementsAre(0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                                     0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A));
-    EXPECT_EQ(prev_block.timestamp(), 5);
+    EXPECT_EQ(block.m_outputMsg.m_info.m_src, addr);
+    EXPECT_EQ(block.m_outputMsg.m_info.m_dst, addr);
+    EXPECT_EQ(block.m_outputMsg.m_info.m_value, value);
 }

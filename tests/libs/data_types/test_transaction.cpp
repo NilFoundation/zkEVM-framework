@@ -9,31 +9,23 @@
 #include "zkevm_framework/data_types/transaction.hpp"
 
 using namespace data_types;
-using namespace testing;
 
 TEST(DataTypesTransactionTests, SerializeDeserializeTransaction) {
+    Address addr = {0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+                    0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A};
     bytes data = {std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}};
-    Transaction transaction(1, 2, 3, data, 5);
-    transaction.forceSender({0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                             0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A});
+    Transaction transaction(Transaction::Type::ContractCreation, 1, 2, addr, 3, 4, data, addr);
 
     bytes blob = transaction.serialize();
 
     Transaction result = Transaction::deserialize(blob);
 
-    EXPECT_THAT(result.sender(),
-                ElementsAre(0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                            0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A));
-    ASSERT_TRUE(result.isCreation());
-    EXPECT_EQ(result.value(), 1);
-    EXPECT_EQ(result.gasPrice(), 2);
-    EXPECT_EQ(result.gas(), 3);
-    EXPECT_THAT(result.to(),
-                ElementsAre(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00));
-    EXPECT_THAT(result.from(),
-                ElementsAre(0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
-                            0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A));
-    EXPECT_THAT(result.data(), ElementsAre(std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}));
-    EXPECT_EQ(result.nonce(), 5);
+    EXPECT_EQ(result.m_type, Transaction::Type::ContractCreation);
+    EXPECT_EQ(result.m_nonce, 1);
+    EXPECT_EQ(result.m_value, 2);
+    EXPECT_EQ(result.m_gasPrice, 3);
+    EXPECT_EQ(result.m_gas, 4);
+    EXPECT_THAT(result.m_receiveAddress, testing::ElementsAreArray(addr));
+    EXPECT_THAT(result.m_sender, testing::ElementsAreArray(addr));
+    EXPECT_THAT(result.m_data, testing::ElementsAreArray(data));
 }
