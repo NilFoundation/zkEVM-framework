@@ -13,7 +13,7 @@ TEST(DataTypesTransactionReceiptTests, SerializeDeserializeTransactionReceipt) {
 
     TransactionReceipt result = TransactionReceipt::deserialize(blob);
 
-    EXPECT_EQ(result.gasUsed(), 1);
-    EXPECT_EQ(result.stateRoot(), 0);
-    EXPECT_EQ(result.getType(), Transaction::ContractCreation);
+    EXPECT_EQ(result.m_gasUsed, 1);
+    EXPECT_EQ(result.m_stateRoot, 0);
+    EXPECT_EQ(result.m_type, Transaction::ContractCreation);
 }

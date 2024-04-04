@@ -14,6 +14,7 @@ function(add_data_types_test target)
 endfunction()
 
 add_data_types_test(test_account)
+add_data_types_test(test_account_block)
 add_data_types_test(test_block)
 add_data_types_test(test_block_header)
 add_data_types_test(test_message)

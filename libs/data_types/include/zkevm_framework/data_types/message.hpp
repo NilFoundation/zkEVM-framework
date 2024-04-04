@@ -15,14 +15,12 @@ namespace data_types {
         friend class InMsg;
         friend class OutMsg;
 
-        CommonMsgInfo() {}
+        Address m_src;
+        Address m_dst;
+        size_t m_value;
 
         CommonMsgInfo(Address src, Address dst, size_t value)
             : m_src(src), m_dst(dst), m_value(value) {}
-
-        Address src() const { return m_src; }
-        Address dst() const { return m_dst; }
-        size_t value() const { return m_value; }
 
         /// @returns the SSZ serialisation
         bytes serialize() const;
@@ -31,10 +29,6 @@ namespace data_types {
         static CommonMsgInfo deserialize(const bytes& src);
 
       private:
-        Address m_src;
-        Address m_dst;
-        size_t m_value;
-
         struct Serializable : ssz::ssz_container {
             Address m_src;
             Address m_dst;
@@ -53,11 +47,11 @@ namespace data_types {
 
     class InMsg {
       public:
-        InMsg() {}
+        friend class Block;
+
+        CommonMsgInfo m_info;
 
         InMsg(CommonMsgInfo info) : m_info(info) {}
-
-        CommonMsgInfo const& info() { return m_info; }
 
         /// @returns the SSZ serialisation
         bytes serialize() const;
@@ -66,8 +60,6 @@ namespace data_types {
         static InMsg deserialize(const bytes& src);
 
       private:
-        CommonMsgInfo m_info;
-
         struct Serializable : ssz::ssz_container {
             CommonMsgInfo::Serializable m_info;
 
@@ -83,11 +75,12 @@ namespace data_types {
 
     class OutMsg {
       public:
-        OutMsg() {}
+        friend class Block;
+        friend class State;
+
+        CommonMsgInfo m_info;
 
         OutMsg(CommonMsgInfo info) : m_info(info) {}
-
-        CommonMsgInfo const& info() { return m_info; }
 
         /// @returns the SSZ serialisation
         bytes serialize() const;
@@ -96,8 +89,6 @@ namespace data_types {
         static OutMsg deserialize(const bytes& src);
 
       private:
-        CommonMsgInfo m_info;
-
         struct Serializable : ssz::ssz_container {
             CommonMsgInfo::Serializable m_info;
 

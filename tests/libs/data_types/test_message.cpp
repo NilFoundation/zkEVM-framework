@@ -17,9 +17,9 @@ TEST(DataTypesMessageTests, SerializeDeserializeCommonMsgInfo) {
 
     CommonMsgInfo result = CommonMsgInfo::deserialize(blob);
 
-    EXPECT_EQ(result.src(), src);
-    EXPECT_EQ(result.dst(), dst);
-    EXPECT_EQ(result.value(), value);
+    EXPECT_EQ(result.m_src, src);
+    EXPECT_EQ(result.m_dst, dst);
+    EXPECT_EQ(result.m_value, value);
 }
 
 TEST(DataTypesMessageTests, SerializeDeserializeInMsg) {
@@ -35,9 +35,9 @@ TEST(DataTypesMessageTests, SerializeDeserializeInMsg) {
 
     InMsg result = InMsg::deserialize(blob);
 
-    EXPECT_EQ(result.info().src(), src);
-    EXPECT_EQ(result.info().dst(), dst);
-    EXPECT_EQ(result.info().value(), value);
+    EXPECT_EQ(result.m_info.m_src, src);
+    EXPECT_EQ(result.m_info.m_dst, dst);
+    EXPECT_EQ(result.m_info.m_value, value);
 }
 
 TEST(DataTypesMessageTests, SerializeDeserializeOutMsg) {
@@ -53,7 +53,7 @@ TEST(DataTypesMessageTests, SerializeDeserializeOutMsg) {
 
     OutMsg result = OutMsg::deserialize(blob);
 
-    EXPECT_EQ(result.info().src(), src);
-    EXPECT_EQ(result.info().dst(), dst);
-    EXPECT_EQ(result.info().value(), value);
+    EXPECT_EQ(result.m_info.m_src, src);
+    EXPECT_EQ(result.m_info.m_dst, dst);
+    EXPECT_EQ(result.m_info.m_value, value);
 }

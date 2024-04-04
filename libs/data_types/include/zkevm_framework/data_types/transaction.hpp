@@ -15,79 +15,39 @@ namespace data_types {
     /// @brief Transaction.
     class Transaction {
       public:
-        friend class Block;
+        friend class AccountBlock;
 
         /// @brief Transaction type
         enum Type : uint8_t { NullTransaction, ContractCreation, MessageCall };
 
-        /// @brief empty transaction
-        Transaction() {}
-
-        /// @brief an unsigned contract-creation transaction
-        Transaction(size_t value, size_t gasPrice, size_t gas, bytes const& data, size_t nonce)
-            : m_value(value),
-              m_gasPrice(gasPrice),
-              m_gas(gas),
-              m_data(data),
-              m_nonce(nonce),
-              m_type(ContractCreation),
-              m_receiveAddress{} {}
-
-        /// @returns sender of the transaction
-        Address const& sender() const { return m_sender; }
-
-        /// @brief Set sender
-        void forceSender(Address const& a) { m_sender = a; }
-
-        /// @returns true if transaction is contract-creation
-        bool isCreation() const { return m_type == ContractCreation; }
-
-        /// @returns the amount of ETH to be transferred by this (message-call)
-        /// transaction
-        size_t value() const { return m_value; }
-
-        /// @returns the gas price
-        size_t gasPrice() const { return m_gasPrice; }
-
-        /// @returns the total gas
-        size_t gas() const { return m_gas; }
-
-        /// @returns the receiving address
-        Address to() const { return m_receiveAddress; }
-
-        /// @returns the sender address
-        Address from() const { return m_sender; }
-
-        /// @returns the data associated with this transaction. Synonym for initCode()
-        bytes const& data() const { return m_data; }
-
-        /// @returns the transaction-count of the sender
-        size_t nonce() const { return m_nonce; }
-
-        /// @returns the SSZ serialization of this transaction
-        bytes serialize() const;
-
-        /// @brief deserizalize from SSZ
-        static Transaction deserialize(bytes src);
-
-        /// @returns merkalization root of SSZ serialization of this transaction
-        SSZHash hash_tree_root() const;
-
-        /// @returns the hash of the SSZ serialization of this transaction
-        Hash hash() const { return 0; }  // TODO: implement.
-
-      private:
         Type m_type;
         size_t m_nonce;
         size_t m_value;
         Address m_receiveAddress;
         size_t m_gasPrice;
         size_t m_gas;
-        bytes m_data;  // constructorCode + contractCode + auxdata +
-                       // constructorData
+        bytes m_data;  // constructorCode + contractCode + auxdata + constructorData
         Address m_sender;
 
-        /// @brief Serializable mirroring structure of `Transaction`.
+        /// @brief an unsigned contract-creation transaction
+        Transaction(Type type, size_t nonce, size_t value, Address receiveAddress, size_t gasPrice,
+                    size_t gas, bytes const& data, Address sender)
+            : m_value(value),
+              m_gasPrice(gasPrice),
+              m_gas(gas),
+              m_data(data),
+              m_nonce(nonce),
+              m_type(type),
+              m_receiveAddress(receiveAddress),
+              m_sender(sender) {}
+
+        /// @returns the SSZ serialization of this transaction
+        bytes serialize() const;
+
+        /// @brief deserizalize from SSZ
+        static Transaction deserialize(const bytes& src);
+
+      private:
         struct Serializable : ssz::ssz_variable_size_container {
             uint8_t m_type;
             size_t m_nonce;
