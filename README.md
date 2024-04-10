@@ -14,7 +14,13 @@ Framework for test verification of state of claster based on EVM
 
 ## Dependencies
 
-### SSZ
+### Build dependencies
+
+* [CMake](https://cmake.org/)
+* [GCC 13+](https://gcc.gnu.org/) (required by SSZ++)
+* [Ninja](https://ninja-build.org/) (recommended)
+
+### SSZ++
 
 * Hashtree [Repository](https://github.com/prysmaticlabs/hashtree)
 * intx: GMP (intx dependency) [Homepage](https://gmplib.org/), intx [Repository](https://github.com/chfast/intx)
