@@ -16,10 +16,13 @@ namespace data_types {
     class Transaction {
       public:
         friend class AccountBlock;
+        friend class InMsg;
+        friend class OutMsg;
 
         /// @brief Transaction type
         enum Type : uint8_t { NullTransaction, ContractCreation, MessageCall };
 
+        size_t m_id;
         Type m_type;
         size_t m_nonce;
         size_t m_value;
@@ -30,9 +33,10 @@ namespace data_types {
         Address m_sender;
 
         /// @brief an unsigned contract-creation transaction
-        Transaction(Type type, size_t nonce, size_t value, Address receiveAddress, size_t gasPrice,
-                    size_t gas, bytes const& data, Address sender)
-            : m_value(value),
+        Transaction(size_t id, Type type, size_t nonce, size_t value, Address receiveAddress,
+                    size_t gasPrice, size_t gas, bytes const& data, Address sender)
+            : m_id(id),
+              m_value(value),
               m_gasPrice(gasPrice),
               m_gas(gas),
               m_data(data),
@@ -49,6 +53,7 @@ namespace data_types {
 
       private:
         struct Serializable : ssz::ssz_variable_size_container {
+            size_t m_id;
             uint8_t m_type;
             size_t m_nonce;
             size_t m_value;
@@ -58,13 +63,14 @@ namespace data_types {
             ssz::list<std::byte, 100> m_data;
             Address m_sender;
 
-            SSZ_CONT(m_type, m_nonce, m_value, m_receiveAddress, m_gasPrice, m_gas, m_data,
+            SSZ_CONT(m_id, m_type, m_nonce, m_value, m_receiveAddress, m_gasPrice, m_gas, m_data,
                      m_sender)
 
             Serializable() {}
 
             Serializable(const Transaction& transaction)
-                : m_nonce(transaction.m_nonce),
+                : m_id(transaction.m_id),
+                  m_nonce(transaction.m_nonce),
                   m_value(transaction.m_value),
                   m_receiveAddress(transaction.m_receiveAddress),
                   m_gasPrice(transaction.m_gasPrice),
@@ -75,7 +81,8 @@ namespace data_types {
         };
 
         Transaction(const Serializable& s)
-            : m_nonce(s.m_nonce),
+            : m_id(s.m_id),
+              m_nonce(s.m_nonce),
               m_value(s.m_value),
               m_receiveAddress(s.m_receiveAddress),
               m_gasPrice(s.m_gasPrice),

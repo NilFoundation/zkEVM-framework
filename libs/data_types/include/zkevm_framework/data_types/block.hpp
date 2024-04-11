@@ -18,17 +18,17 @@ namespace data_types {
     class Block {
       public:
         MPTNode<AccountBlock> m_accountBlocks;
-        InMsg m_inputMsg;
-        OutMsg m_outputMsg;
+        MPTNode<InMsg> m_inputMsgs;
+        MPTNode<OutMsg> m_outputMsgs;
         BlockHeader m_previousBlock;
         BlockHeader m_currentBlock;
 
-        Block(const MPTNode<AccountBlock> &accountBlocks, const InMsg &inputMsg,
-              const OutMsg &outputMsg, const BlockHeader &previousBlock,
+        Block(const MPTNode<AccountBlock> &accountBlocks, const MPTNode<InMsg> &inputMsgs,
+              const MPTNode<OutMsg> &outputMsgs, const BlockHeader &previousBlock,
               const BlockHeader &currentBlock)
             : m_accountBlocks(accountBlocks),
-              m_inputMsg(inputMsg),
-              m_outputMsg(outputMsg),
+              m_inputMsgs(inputMsgs),
+              m_outputMsgs(outputMsgs),
               m_previousBlock(previousBlock),
               m_currentBlock(currentBlock) {}
 
@@ -41,12 +41,12 @@ namespace data_types {
       private:
         struct Serializable : ssz::ssz_variable_size_container {
             ssz::list<AccountBlock::Serializable, 100> m_accountBlocks;
-            InMsg::Serializable m_inputMsg;
-            OutMsg::Serializable m_outputMsg;
+            ssz::list<InMsg::Serializable, 100> m_inputMsgs;
+            ssz::list<OutMsg::Serializable, 100> m_outputMsgs;
             BlockHeader::Serializable m_previousBlock;
             BlockHeader::Serializable m_currentBlock;
 
-            SSZ_CONT(m_accountBlocks, m_inputMsg, m_outputMsg, m_previousBlock, m_currentBlock)
+            SSZ_CONT(m_accountBlocks, m_inputMsgs, m_outputMsgs, m_previousBlock, m_currentBlock)
 
             Serializable() {}
 

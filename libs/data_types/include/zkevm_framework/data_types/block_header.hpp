@@ -25,6 +25,11 @@ namespace data_types {
         size_t m_number;
         size_t m_gasLimit;
         size_t m_gasUsed;
+        Address m_coinbase;
+        size_t m_prevrandao;
+        size_t m_chain_id;
+        size_t m_basefee;
+        size_t m_blob_basefee;
         bytes m_extraData;
         size_t m_timestamp;
 
@@ -32,11 +37,17 @@ namespace data_types {
 
         /// @brief block header from data
         BlockHeader(Hash const& parentHash, size_t number, size_t gasLimit, size_t gasUsed,
-                    const bytes& extraData, size_t timestamp = Invalid256)
+                    Address coinbase, size_t prevrandao, size_t chain_id, size_t basefee,
+                    size_t blob_basefee, const bytes& extraData, size_t timestamp = Invalid256)
             : m_parentHash(parentHash),
               m_number(number),
               m_gasLimit(gasLimit),
               m_gasUsed(gasUsed),
+              m_coinbase(coinbase),
+              m_prevrandao(prevrandao),
+              m_chain_id(chain_id),
+              m_basefee(basefee),
+              m_blob_basefee(blob_basefee),
               m_extraData(extraData),
               m_timestamp(timestamp) {}
 
@@ -52,10 +63,16 @@ namespace data_types {
             size_t m_number;
             size_t m_gasLimit;
             size_t m_gasUsed;
+            Address m_coinbase;
+            size_t m_prevrandao;
+            size_t m_chain_id;
+            size_t m_basefee;
+            size_t m_blob_basefee;
             ssz::list<std::byte, 100> m_extraData;
             size_t m_timestamp;
 
-            SSZ_CONT(m_parentHash, m_number, m_gasLimit, m_gasUsed, m_extraData, m_timestamp)
+            SSZ_CONT(m_parentHash, m_number, m_gasLimit, m_gasUsed, m_coinbase, m_prevrandao,
+                     m_chain_id, m_basefee, m_blob_basefee, m_extraData, m_timestamp)
 
             Serializable() {}
 
@@ -64,8 +81,13 @@ namespace data_types {
                   m_number(header.m_number),
                   m_gasLimit(header.m_gasLimit),
                   m_gasUsed(header.m_gasUsed),
-                  m_timestamp(header.m_timestamp),
-                  m_extraData(header.m_extraData) {}
+                  m_coinbase(header.m_coinbase),
+                  m_prevrandao(header.m_prevrandao),
+                  m_chain_id(header.m_chain_id),
+                  m_basefee(header.m_basefee),
+                  m_blob_basefee(header.m_basefee),
+                  m_extraData(header.m_extraData),
+                  m_timestamp(header.m_timestamp) {}
         };
 
         BlockHeader(const Serializable& s)
@@ -73,8 +95,13 @@ namespace data_types {
               m_number(s.m_number),
               m_gasLimit(s.m_gasLimit),
               m_gasUsed(s.m_gasUsed),
-              m_timestamp(s.m_timestamp),
-              m_extraData(s.m_extraData.begin(), s.m_extraData.end()) {}
+              m_coinbase(s.m_coinbase),
+              m_prevrandao(s.m_prevrandao),
+              m_chain_id(s.m_chain_id),
+              m_basefee(s.m_basefee),
+              m_blob_basefee(s.m_basefee),
+              m_extraData(s.m_extraData.begin(), s.m_extraData.end()),
+              m_timestamp(s.m_timestamp) {}
     };
 }  // namespace data_types
 

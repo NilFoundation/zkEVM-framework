@@ -14,12 +14,13 @@ TEST(DataTypesTransactionTests, SerializeDeserializeTransaction) {
     Address addr = {0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
                     0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A};
     bytes data = {std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}};
-    Transaction transaction(Transaction::Type::ContractCreation, 1, 2, addr, 3, 4, data, addr);
+    Transaction transaction(0, Transaction::Type::ContractCreation, 1, 2, addr, 3, 4, data, addr);
 
     bytes blob = transaction.serialize();
 
     Transaction result = Transaction::deserialize(blob);
 
+    EXPECT_EQ(result.m_id, 0);
     EXPECT_EQ(result.m_type, Transaction::Type::ContractCreation);
     EXPECT_EQ(result.m_nonce, 1);
     EXPECT_EQ(result.m_value, 2);

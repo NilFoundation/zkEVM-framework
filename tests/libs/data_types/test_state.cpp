@@ -14,9 +14,11 @@ TEST(DataTypesStateTests, SerializeDeserializeState) {
                    0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A};
     Address dst = {0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B,
                    0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B, 0x0B};
+    bytes data = {std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}};
     size_t value = 42;
+    Transaction transaction(0, Transaction::Type::ContractCreation, 1, 2, dst, 3, 4, data, src);
     CommonMsgInfo info(src, dst, value);
-    OutMsg msg(info);
+    OutMsg msg(info, transaction);
     MPTNode<OutMsg> out_msgs = {};
     out_msgs.push_back(msg);
     Account acc(1, 2, EVMC_ACCESS_COLD);
@@ -43,6 +45,16 @@ TEST(DataTypesStateTests, SerializeDeserializeState) {
     EXPECT_EQ(result.m_outMsg[0].m_info.m_src, src);
     EXPECT_EQ(result.m_outMsg[0].m_info.m_dst, dst);
     EXPECT_EQ(result.m_outMsg[0].m_info.m_value, value);
+    Transaction msg_t = result.m_outMsg[0].m_transaction;
+    EXPECT_EQ(msg_t.m_id, 0);
+    EXPECT_EQ(msg_t.m_type, Transaction::Type::ContractCreation);
+    EXPECT_EQ(msg_t.m_nonce, 1);
+    EXPECT_EQ(msg_t.m_value, 2);
+    EXPECT_EQ(msg_t.m_gasPrice, 3);
+    EXPECT_EQ(msg_t.m_gas, 4);
+    EXPECT_THAT(msg_t.m_receiveAddress, testing::ElementsAreArray(dst));
+    EXPECT_THAT(msg_t.m_sender, testing::ElementsAreArray(src));
+    EXPECT_THAT(msg_t.m_data, testing::ElementsAreArray(data));
 
     EXPECT_EQ(result.m_accounts.size(), 1);
     EXPECT_EQ(result.m_accounts[0].m_accessStatus, EVMC_ACCESS_COLD);
