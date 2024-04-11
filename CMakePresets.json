@@ -30,8 +30,7 @@
       "name": "test",
       "displayName": "Test",
       "description": "Build for testing using Ninja generator",
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/debug",
+      "inherits": "release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "ENABLE_TESTS": "TRUE"
