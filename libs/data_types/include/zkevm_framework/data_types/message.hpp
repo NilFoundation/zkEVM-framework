@@ -8,6 +8,7 @@
 
 #include "sszpp/ssz++.hpp"
 #include "zkevm_framework/data_types/base.hpp"
+#include "zkevm_framework/data_types/transaction.hpp"
 
 namespace data_types {
     class CommonMsgInfo {
@@ -50,8 +51,10 @@ namespace data_types {
         friend class Block;
 
         CommonMsgInfo m_info;
+        Transaction m_transaction;
 
-        InMsg(CommonMsgInfo info) : m_info(info) {}
+        InMsg(CommonMsgInfo info, Transaction transaction)
+            : m_info(info), m_transaction(transaction) {}
 
         /// @returns the SSZ serialisation
         bytes serialize() const;
@@ -60,17 +63,18 @@ namespace data_types {
         static InMsg deserialize(const bytes& src);
 
       private:
-        struct Serializable : ssz::ssz_container {
+        struct Serializable : ssz::ssz_variable_size_container {
             CommonMsgInfo::Serializable m_info;
+            Transaction::Serializable m_transaction;
 
-            SSZ_CONT(m_info)
+            SSZ_CONT(m_info, m_transaction)
 
             Serializable() {}
 
-            Serializable(const InMsg& info) : m_info(info.m_info) {}
+            Serializable(const InMsg& msg) : m_info(msg.m_info), m_transaction(msg.m_transaction) {}
         };
 
-        InMsg(const Serializable& s) : m_info(s.m_info) {}
+        InMsg(const Serializable& s) : m_info(s.m_info), m_transaction(s.m_transaction) {}
     };
 
     class OutMsg {
@@ -79,8 +83,10 @@ namespace data_types {
         friend class State;
 
         CommonMsgInfo m_info;
+        Transaction m_transaction;
 
-        OutMsg(CommonMsgInfo info) : m_info(info) {}
+        OutMsg(CommonMsgInfo info, Transaction transaction)
+            : m_info(info), m_transaction(transaction) {}
 
         /// @returns the SSZ serialisation
         bytes serialize() const;
@@ -89,17 +95,19 @@ namespace data_types {
         static OutMsg deserialize(const bytes& src);
 
       private:
-        struct Serializable : ssz::ssz_container {
+        struct Serializable : ssz::ssz_variable_size_container {
             CommonMsgInfo::Serializable m_info;
+            Transaction::Serializable m_transaction;
 
-            SSZ_CONT(m_info)
+            SSZ_CONT(m_info, m_transaction)
 
             Serializable() {}
 
-            Serializable(const OutMsg& info) : m_info(info.m_info) {}
+            Serializable(const OutMsg& msg)
+                : m_info(msg.m_info), m_transaction(msg.m_transaction) {}
         };
 
-        OutMsg(const Serializable& s) : m_info(s.m_info) {}
+        OutMsg(const Serializable& s) : m_info(s.m_info), m_transaction(s.m_transaction) {}
     };
 }  // namespace data_types
 
