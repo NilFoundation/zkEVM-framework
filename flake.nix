@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs = { url = "github:NixOS/nixpkgs/nixos-23.11"; };
-    # TODO: remove ssh type here after evm-assigner goes public
     nil_evm_assigner = {
       type = "github";
       owner = "NilFoundation";
