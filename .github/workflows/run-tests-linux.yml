@@ -3,7 +3,11 @@ name: Run tests on Linux
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+        - '**.md'
   pull_request:
+    paths-ignore:
+        - '**.md'
 
 concurrency:
   # In master we want to run for every commit, in other branches — only for the last one
