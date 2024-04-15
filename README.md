@@ -1,6 +1,6 @@
 # zkEVM-framework
 
-Framework for test verification of state of claster based on EVM
+Framework for test verification of state of cluster based on EVM
 
 ## Content
 
@@ -26,12 +26,39 @@ Framework for test verification of state of claster based on EVM
 * intx: GMP (intx dependency) [Homepage](https://gmplib.org/), intx [Repository](https://github.com/chfast/intx)
 * SSZ++ [Repository](https://github.com/OffchainLabs/sszpp)
 
+### EVM-assigner
+
+* evmc [Repository](https://github.com/ethereum/evmc)
+* =nil; crypto3 [Repository](https://github.com/NilFoundation/crypto3)
+* =nil; zkllvm-blueprint [Repository](https://github.com/NilFoundation/zkllvm-blueprint)
+* =nil; evm-assigner [Repository](https://github.com/NilFoundation/evm-assigner)
+
 ## Nix environment
 
 Instead of installing all dependencies manually,
-you can activate [Nix](https://nixos.org/download#download-nix) environment with all installed deps:
+you can use [Nix](https://nixos.org/download#download-nix) environment with all installed deps.
 
-```plain
+Because zkEVM-framework currently has EVM-assigner as a dependency which is private repository,
+it is required to configure Nix with GitHub Personal Access Token (PAT).
+In order to generate your PAT, go [here](https://github.com/settings/tokens). Your token
+must have access to content of private repositories.
+
+Then add this to your Nix configuration file (`/etc/nix/nix.conf`):
+
+```plaintext
+access-tokens = github.com=<YOUR PAT>
+```
+
+If for some reason you don't want to use PAT, you can fallback to using SSH authentication
+using `--override-input` option. Add this to your Nix command:
+
+```plaintext
+--override-input nil_evm_assigner git+ssh://git@github.com/NilFoundation/evm-assigner.git
+````
+
+To activate development environment run:
+
+```bash
 nix develop
 ```
 
