@@ -641,3 +641,6 @@ examples/rust/Cargo.lock
 
 # direnv
 .direnv/
+
+# Nix build results directory
+/result
