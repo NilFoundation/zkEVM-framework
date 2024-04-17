@@ -8,7 +8,6 @@
 
 #include <cstdint>
 
-#include "sszpp/ssz++.hpp"
 #include "zkevm_framework/data_types/account.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/message.hpp"
@@ -53,32 +52,6 @@ namespace data_types {
 
         /// @brief deserizalize from SSZ
         static State deserialize(const bytes &src);
-
-      private:
-        struct Serializable : ssz::ssz_variable_size_container {
-            uint64_t m_globalId;
-            uint64_t m_shardId;
-            uint32_t m_seqNo;
-            uint64_t m_vertSeqNo;
-            size_t m_genLt;
-            uint32_t m_minRefMcSeqno;
-            bool m_beforeSplit;
-            uint32_t m_genUtime;
-            uint32_t m_totalBalance;
-            uint32_t m_totalValidatorFees;
-            ssz::list<OutMsg::Serializable, 100> m_outMsg;
-            ssz::list<Account::Serializable, 100> m_accounts;
-
-            SSZ_CONT(m_globalId, m_shardId, m_seqNo, m_vertSeqNo, m_genLt, m_minRefMcSeqno,
-                     m_beforeSplit, m_genUtime, m_totalBalance, m_totalValidatorFees, m_outMsg,
-                     m_accounts)
-
-            Serializable() {}
-
-            Serializable(const State &state);
-        };
-
-        State(const Serializable &s);
     };
 }  // namespace data_types
 

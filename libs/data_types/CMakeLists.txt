@@ -1,22 +1,8 @@
-# SSZ++ requires C++23
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-find_package(Hashtree REQUIRED)
-find_package(sszpp REQUIRED)
-
 set(LIBRARY_NAME zkEVMDataTypes)
-set(SOURCES
-    src/account.cpp
-    src/account_block.cpp
-    src/block.cpp
-    src/block_header.cpp
-    src/message.cpp
-    src/state.cpp
-    src/transaction.cpp
-    src/transaction_receipt.cpp)
 
-add_library(${LIBRARY_NAME} STATIC ${SOURCES})
+add_library(${LIBRARY_NAME} STATIC)
+
+add_subdirectory(src)
 
 set(PUBLIC_HEADERS_PREFIX zkevm_framework/data_types)
 set(PUBLIC_HEADERS
@@ -34,12 +20,11 @@ set(PUBLIC_HEADERS
 set_target_properties(${LIBRARY_NAME} PROPERTIES PUBLIC_HEADER "${PUBLIC_HEADERS}")
 
 target_include_directories(${LIBRARY_NAME}
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-
-target_link_libraries(${LIBRARY_NAME} INTERFACE sszpp)
-target_link_libraries(${LIBRARY_NAME} PRIVATE hashtree)
 
 install(TARGETS ${LIBRARY_NAME}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PUBLIC_HEADERS_PREFIX}

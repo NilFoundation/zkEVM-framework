@@ -1,26 +1,27 @@
 #include "zkevm_framework/data_types/message.hpp"
 
+#include "containers/message.hpp"
 #include "sszpp/ssz++.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 
 namespace data_types {
-    bytes CommonMsgInfo::serialize() const {
-        return ssz::serialize<CommonMsgInfo::Serializable>(*this);
-    }
+    using namespace containers;
+
+    bytes CommonMsgInfo::serialize() const { return ssz::serialize<CommonMsgInfoContainer>(*this); }
 
     CommonMsgInfo CommonMsgInfo::deserialize(const bytes& src) {
-        return ssz::deserialize<CommonMsgInfo::Serializable>(src);
+        return static_cast<CommonMsgInfo>(ssz::deserialize<CommonMsgInfoContainer>(src));
     }
 
-    bytes InMsg::serialize() const { return ssz::serialize<InMsg::Serializable>(*this); }
+    bytes InMsg::serialize() const { return ssz::serialize<InMsgContainer>(*this); }
 
     InMsg InMsg::deserialize(const bytes& src) {
-        return ssz::deserialize<InMsg::Serializable>(src);
+        return static_cast<InMsg>(ssz::deserialize<InMsgContainer>(src));
     }
 
-    bytes OutMsg::serialize() const { return ssz::serialize<OutMsg::Serializable>(*this); }
+    bytes OutMsg::serialize() const { return ssz::serialize<OutMsgContainer>(*this); }
 
     OutMsg OutMsg::deserialize(const bytes& src) {
-        return ssz::deserialize<OutMsg::Serializable>(src);
+        return static_cast<OutMsg>(ssz::deserialize<OutMsgContainer>(src));
     }
 }  // namespace data_types
