@@ -64,7 +64,7 @@ nix develop
 ## Clone
 
 ```plain
-git clone --recurse-submodules https://github.com/NilFoundation/zkEVM-framework.git
+git clone https://github.com/NilFoundation/zkEVM-framework.git
 ```
 
 If you want Nix to use your local version of dependency instead of cloning it from GitHub,
@@ -79,32 +79,14 @@ Same option applies to `nix build` and etc.
 ## Build
 
 ```plain
-cmake -G "Ninja" -B build -DCMAKE_BUILD_TYPE=Release .
-cmake --build build
+cmake -B ${BUILD_DIR:-build} -DCMAKE_BUILD_TYPE=Release .
+cmake --build ${BUILD_DIR:-build}
 ```
 
 Or with Nix:
 
 ```bash
 nix build
-```
-## Assigner executable
-
-### Build dependency
-
-```bash
-cd libs/assigner
-cmake -G "Ninja" -B build .
-cmake --build build
-cmake --install build
-cd ../..
-```
-
-### Build executable
-
-```bash
-cmake -G "Ninja" -B build
-cmake --build build
 ```
 
 ## Test
