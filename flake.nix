@@ -133,10 +133,9 @@
           evm_assigner = nil_evm_assigner.packages.${pkgs.system}.default;
           crypto3 = nil_crypto3.packages.${pkgs.system}.default;
           blueprint = nil_zkllvm_blueprint.packages.${pkgs.system}.default;
-
         in
         pkgs.mkShell {
-          buildInputs = with pkgs; [
+          nativeBuildInputs = with pkgs; [
             cmake
             ninja
             boost
