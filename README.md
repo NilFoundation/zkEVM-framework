@@ -62,6 +62,15 @@ To activate development environment run:
 nix develop
 ```
 
+If you want Nix to use your local version of dependency instead of cloning it from GitHub,
+you can use `--override-input`. E.g. if you want to use your local evm-assigner, use this:
+
+```bash
+nix develop --override-input nil_evm_assigner path:/path/to/evm-assigner
+```
+
+Same option applies to `nix build` and etc.
+
 ## Build
 
 ```plain
