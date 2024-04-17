@@ -106,10 +106,11 @@ int curve_dependent_main(const std::string& input_block_file_name,
 
     // init current account storage
     vm_accounts account_storage = {{}};
-    const std::vector<data_types::AccountBlock> &accountBlocks = input_block.m_accountBlocks;
+    const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
     /*for (const auto& accountBlock : accountBlocks) {
         vm_account acc;
-        account_storage.insert(std::pair<evmc::address, vm_account>(to_evmc_address(accountBlock.m_accountAddress), acc));
+        account_storage.insert(std::pair<evmc::address,
+    vm_account>(to_evmc_address(accountBlock.m_accountAddress), acc));
     }*/
 
     VmHost host(tx_context, account_storage);
@@ -120,20 +121,28 @@ int curve_dependent_main(const std::string& input_block_file_name,
         tx_context.tx_origin = origin_addr;
 
         // check if transaction in block
-        const auto acc_block_it = std::find_if(accountBlocks.begin(), accountBlocks.end(), [input_msg](const data_types::AccountBlock& acc) { return acc.m_accountAddress == input_msg.m_info.m_dst; });
+        const auto acc_block_it =
+            std::find_if(accountBlocks.begin(), accountBlocks.end(),
+                         [input_msg](const data_types::AccountBlock& acc) {
+                             return acc.m_accountAddress == input_msg.m_info.m_dst;
+                         });
         if (acc_block_it != accountBlocks.end()) {
-            const std::vector<data_types::Transaction> &transactions = acc_block_it->m_transactions;
-            const auto transaction_it = std::find_if(transactions.begin(), transactions.end(), [input_msg](const data_types::Transaction& t) { return t.m_id == input_msg.m_transaction.m_id; });
+            const std::vector<data_types::Transaction>& transactions = acc_block_it->m_transactions;
+            const auto transaction_it =
+                std::find_if(transactions.begin(), transactions.end(),
+                             [input_msg](const data_types::Transaction& t) {
+                                 return t.m_id == input_msg.m_transaction.m_id;
+                             });
             if (transaction_it == transactions.end()) {
                 std::cerr << "Not found transaction" << std::endl;
-            return -1;
+                return -1;
             }
         } else {
             std::cerr << "Not found account block" << std::endl;
             return -1;
         }
 
-        const auto &transaction = input_msg.m_transaction;
+        const auto& transaction = input_msg.m_transaction;
         // set tansaction related fields
         tx_context.tx_gas_price = to_uint256be(transaction.m_gasPrice);
 
@@ -158,19 +167,18 @@ int curve_dependent_main(const std::string& input_block_file_name,
         const int64_t gas = transaction.m_gas;
         const uint8_t input[] = "";
         struct evmc_message msg = {.kind = EVMC_CALL,
-                                    .flags = uint32_t{EVMC_STATIC},
-                                    .depth = 0,
-                                    .gas = gas,
-                                    .recipient = recipient_addr,
-                                    .sender = sender_addr,
-                                    .input_data = input,
-                                    .input_size = sizeof(input),
-                                    .value = value,
-                                    .create2_salt = 0,
-                                    .code_address = origin_addr};
+                                   .flags = uint32_t{EVMC_STATIC},
+                                   .depth = 0,
+                                   .gas = gas,
+                                   .recipient = recipient_addr,
+                                   .sender = sender_addr,
+                                   .input_data = input,
+                                   .input_size = sizeof(input),
+                                   .value = value,
+                                   .create2_salt = 0,
+                                   .code_address = origin_addr};
 
-        assigner_instance.evaluate(vm, host_interface, ctx, rev, &msg, code.data(),
-                                    code.size());
+        assigner_instance.evaluate(vm, host_interface, ctx, rev, &msg, code.data(), code.size());
     }
 
     // TODO: write assignment tables to assignment_table_file_name

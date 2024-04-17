@@ -142,7 +142,6 @@
             boost
             gtest
             doxygen
-            boost
             clang_17
             deps.sszpp
             evm_assigner
