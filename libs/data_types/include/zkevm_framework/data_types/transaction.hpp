@@ -8,7 +8,6 @@
 
 #include <cstdint>
 
-#include "sszpp/ssz++.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 
 namespace data_types {
@@ -50,46 +49,6 @@ namespace data_types {
 
         /// @brief deserizalize from SSZ
         static Transaction deserialize(const bytes& src);
-
-      private:
-        struct Serializable : ssz::ssz_variable_size_container {
-            size_t m_id;
-            uint8_t m_type;
-            size_t m_nonce;
-            size_t m_value;
-            Address m_receiveAddress;
-            size_t m_gasPrice;
-            size_t m_gas;
-            ssz::list<std::byte, 100> m_data;
-            Address m_sender;
-
-            SSZ_CONT(m_id, m_type, m_nonce, m_value, m_receiveAddress, m_gasPrice, m_gas, m_data,
-                     m_sender)
-
-            Serializable() {}
-
-            Serializable(const Transaction& transaction)
-                : m_id(transaction.m_id),
-                  m_nonce(transaction.m_nonce),
-                  m_value(transaction.m_value),
-                  m_receiveAddress(transaction.m_receiveAddress),
-                  m_gasPrice(transaction.m_gasPrice),
-                  m_gas(transaction.m_gas),
-                  m_sender(transaction.m_sender),
-                  m_type(transaction.m_type),
-                  m_data(transaction.m_data) {}
-        };
-
-        Transaction(const Serializable& s)
-            : m_id(s.m_id),
-              m_nonce(s.m_nonce),
-              m_value(s.m_value),
-              m_receiveAddress(s.m_receiveAddress),
-              m_gasPrice(s.m_gasPrice),
-              m_gas(s.m_gas),
-              m_sender(s.m_sender),
-              m_type(static_cast<Type>(s.m_type)),
-              m_data(s.m_data.begin(), s.m_data.end()) {}
     };
 }  // namespace data_types
 

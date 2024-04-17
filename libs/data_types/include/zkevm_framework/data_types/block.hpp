@@ -6,7 +6,6 @@
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_BLOCK_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_BLOCK_HPP_
 
-#include "sszpp/ssz++.hpp"
 #include "zkevm_framework/data_types/account_block.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/block_header.hpp"
@@ -37,23 +36,6 @@ namespace data_types {
 
         /// @brief deserizalize from SSZ
         static Block deserialize(const bytes &src);
-
-      private:
-        struct Serializable : ssz::ssz_variable_size_container {
-            ssz::list<AccountBlock::Serializable, 100> m_accountBlocks;
-            ssz::list<InMsg::Serializable, 100> m_inputMsgs;
-            ssz::list<OutMsg::Serializable, 100> m_outputMsgs;
-            BlockHeader::Serializable m_previousBlock;
-            BlockHeader::Serializable m_currentBlock;
-
-            SSZ_CONT(m_accountBlocks, m_inputMsgs, m_outputMsgs, m_previousBlock, m_currentBlock)
-
-            Serializable() {}
-
-            Serializable(const Block &block);
-        };
-
-        Block(const Serializable &s);
     };
 }  // namespace data_types
 

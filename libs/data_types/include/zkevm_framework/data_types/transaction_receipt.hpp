@@ -8,7 +8,6 @@
 
 #include <cstdint>
 
-#include "sszpp/ssz++.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
 
@@ -31,27 +30,6 @@ namespace data_types {
 
         /// @brief deserizalize from SSZ
         static TransactionReceipt deserialize(const bytes& src);
-
-      private:
-        struct Serializable : ssz::ssz_container {
-            uint8_t m_type;
-            Hash m_stateRoot;
-            size_t m_gasUsed;
-
-            SSZ_CONT(m_type, m_stateRoot, m_gasUsed)
-
-            Serializable() {}
-
-            Serializable(const TransactionReceipt& receipt)
-                : m_type(receipt.m_type),
-                  m_stateRoot(receipt.m_stateRoot),
-                  m_gasUsed(receipt.m_gasUsed) {}
-        };
-
-        TransactionReceipt(const Serializable& s)
-            : m_type(static_cast<Transaction::Type>(s.m_type)),
-              m_stateRoot(s.m_stateRoot),
-              m_gasUsed(s.m_gasUsed) {}
     };
 }  // namespace data_types
 
