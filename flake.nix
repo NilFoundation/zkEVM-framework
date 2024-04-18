@@ -136,6 +136,7 @@
         in
         pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
+            gcc13
             cmake
             ninja
             boost
