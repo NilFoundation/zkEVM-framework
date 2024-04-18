@@ -79,6 +79,7 @@
             ninja
             boost
             deps.sszpp
+            deps.evmc
             evm_assigner
             crypto3
             blueprint
@@ -153,6 +154,12 @@
     {
       packages = forAllSystems ({ pkgs }: { default = makeReleaseBuild { inherit pkgs; }; });
       checks = forAllSystems ({ pkgs }: { default = makeTests { inherit pkgs; }; });
+      apps = forAllSystems ({ pkgs }: {
+        assigner = {
+              type = "app";
+              program = "${self.packages.${pkgs.system}.default}/bin/assigner";
+        };
+      });
       devShells = forAllSystems ({ pkgs }: { default = makeDevShell { inherit pkgs; }; });
     };
 }

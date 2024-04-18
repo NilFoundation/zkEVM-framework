@@ -35,5 +35,8 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Run build
+        run: nix build -L
+
       - name: Run checks
         run: nix flake -L check
