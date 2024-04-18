@@ -64,7 +64,7 @@ nix develop
 ## Clone
 
 ```plain
-git clone https://github.com/NilFoundation/zkEVM-framework.git
+git clone https://<GITGUB TOKEN>@github.com/NilFoundation/zkEVM-framework.git
 ```
 
 If you want Nix to use your local version of dependency instead of cloning it from GitHub,
@@ -79,14 +79,21 @@ Same option applies to `nix build` and etc.
 ## Build
 
 ```plain
-cmake -B ${BUILD_DIR:-build} -DCMAKE_BUILD_TYPE=Release .
-cmake --build ${BUILD_DIR:-build}
+cmake --preset release
+cmake --build --preset release
 ```
 
 Or with Nix:
 
 ```bash
 nix build
+```
+## Assigner
+
+### Build && run
+
+```bash
+nix run .#assigner -- -b block -t assignments -e pallas
 ```
 
 ## Test
