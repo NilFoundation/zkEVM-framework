@@ -180,7 +180,9 @@ std::optional<data_types::Block> read_input_block(const std::string& file_name) 
         std::cerr << "Could not open the file - '" << file_name << "'" << std::endl;
         return std::nullopt;
     }
+    input_block_file.seekg(0, std::ios::end);
     data_types::bytes serialized_block(input_block_file.tellg());
+    input_block_file.seekg(0, std::ios::beg);
     input_block_file.read(reinterpret_cast<char*>(serialized_block.data()),
                           serialized_block.size());
     if (input_block_file.fail()) {
