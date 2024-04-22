@@ -7,6 +7,8 @@
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_BLOCK_HEADER_HPP_
 
 #include <cstdint>
+#include <iostream>
+#include <optional>
 
 #include "zkevm_framework/data_types/base.hpp"
 
@@ -52,8 +54,18 @@ namespace data_types {
         /// @returns the SSZ serialization
         bytes serialize() const;
 
+        /**
+         * @brief write SSZ serialization to stream
+         *
+         * @return number of bytes written. If I/O error occured, returns -1.
+         */
+        int serialize(std::ostream& out) const;
+
         /// @brief deserizalize from SSZ
         static BlockHeader deserialize(const bytes& src);
+
+        /// @brief deserizalize from SSZ
+        static std::optional<BlockHeader> deserialize(std::istream& src);
     };
 }  // namespace data_types
 
