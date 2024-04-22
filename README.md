@@ -33,6 +33,20 @@ Framework for test verification of state of cluster based on EVM
 * =nil; zkllvm-blueprint [Repository](https://github.com/NilFoundation/zkllvm-blueprint)
 * =nil; evm-assigner [Repository](https://github.com/NilFoundation/evm-assigner)
 
+## Clone
+
+Using SSH:
+
+```plain
+git clone git@github.com:NilFoundation/zkEVM-framework.git
+```
+
+Or if you are using GitHub PAT to authenticate using HTTPS:
+
+```plain
+git clone https://<GITGUB_TOKEN>@github.com/NilFoundation/zkEVM-framework.git
+```
+
 ## Nix environment
 
 Instead of installing all dependencies manually,
@@ -61,11 +75,6 @@ To activate development environment run:
 ```bash
 nix develop
 ```
-## Clone
-
-```plain
-git clone https://<GITGUB TOKEN>@github.com/NilFoundation/zkEVM-framework.git
-```
 
 If you want Nix to use your local version of dependency instead of cloning it from GitHub,
 you can use `--override-input`. E.g. if you want to use your local evm-assigner, use this:
@@ -88,6 +97,7 @@ Or with Nix:
 ```bash
 nix build
 ```
+
 ## Assigner
 
 ### Build && run
