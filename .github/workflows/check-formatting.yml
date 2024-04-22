@@ -1,4 +1,4 @@
-name: Check code formatting
+name: Check formatting
 
 on:
   push:
@@ -15,12 +15,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  formatting-check:
-    name: Formatting Check
+  code-formatting-check:
+    name: Code formatting check
     runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
       - name: Run clang-format
         uses: jidicula/clang-format-action@v4.11.0
         with:
           clang-format-version: "17"
+
+  markdown-formatting-check:
+    name: Markdown formatting check
+    runs-on: [ self-hosted, Linux, X64, aws_autoscaling ]
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v3
+
+      - name: Run markdownlint
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          config: .markdownlint.yml
+          globs: '**/*.md'
