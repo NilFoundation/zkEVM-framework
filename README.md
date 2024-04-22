@@ -88,8 +88,7 @@ Same option applies to `nix build` and etc.
 ## Build
 
 ```plain
-cmake --preset release
-cmake --build --preset release
+cmake --workflow --preset release-build
 ```
 
 Or with Nix:
