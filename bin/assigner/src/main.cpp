@@ -62,12 +62,20 @@ int curve_dependent_main(const std::string& input_block_file_name,
     // create assigner instance
     nil::blueprint::assigner<BlueprintFieldType> assigner_instance(desc, assignments);
 
-    auto v = read_input_block(input_block_file_name);
-    if (!v.has_value()) {
-        std::cerr << "Could not read input block" << std::endl;
+    std::ifstream input_block_file(input_block_file_name.c_str(),
+                                   std::ios_base::binary | std::ios_base::in);
+    if (!input_block_file.is_open()) {
+        std::cerr << "Could not open the file - '" << input_block_file_name << "'" << std::endl;
         return -1;
     }
-    data_types::Block input_block = v.value();
+    auto opt_input_block = data_types::Block::deserialize(input_block_file);
+    if (!opt_input_block.has_value()) {
+        std::cerr << "Could not read - '" << input_block_file_name << "'" << std::endl;
+        input_block_file.close();
+        return -1;
+    }
+    auto input_block = opt_input_block.value();
+    input_block_file.close();
 
     // get header of the current block
     const auto block_header = input_block.m_currentBlock;
