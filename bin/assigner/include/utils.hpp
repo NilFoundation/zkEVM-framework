@@ -1,9 +1,12 @@
 #ifndef ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_UTILS_HPP_
 #define ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_UTILS_HPP_
 
-#include <execution_state.hpp>
-#include <vm.hpp>
+#include <fstream>
+#include <iostream>
+#include <map>
 
+#include "execution_state.hpp"
+#include "vm.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 
