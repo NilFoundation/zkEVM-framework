@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <sstream>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -15,6 +16,31 @@ TEST(DataTypesBlockHeaderTests, SerializeDeserializeBlockHeader) {
     bytes blob = hdr.serialize();
 
     BlockHeader result = BlockHeader::deserialize(blob);
+
+    EXPECT_EQ(result.m_parentHash, 0);
+    EXPECT_EQ(result.m_number, 1);
+    EXPECT_EQ(result.m_gasLimit, 2);
+    EXPECT_EQ(result.m_gasUsed, 3);
+    EXPECT_THAT(result.m_coinbase, testing::ElementsAreArray(addr));
+    EXPECT_EQ(result.m_prevrandao, 4);
+    EXPECT_EQ(result.m_chain_id, 1);
+    EXPECT_EQ(result.m_basefee, 55);
+    EXPECT_EQ(result.m_blob_basefee, 55);
+    EXPECT_THAT(result.m_extraData, testing::ElementsAreArray(data));
+    EXPECT_EQ(result.m_timestamp, 5);
+}
+
+TEST(DataTypesBlockHeaderTests, StreamSerializeDeserializeBlockHeader) {
+    Address addr = {0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A,
+                    0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A};
+    bytes data = {std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}};
+    BlockHeader hdr(0, 1, 2, 3, addr, 4, 1, 55, 55, data, 5);
+    std::stringstream ss;
+    hdr.serialize(ss);
+
+    std::optional<BlockHeader> opt_result = BlockHeader::deserialize(ss);
+    EXPECT_TRUE(opt_result.has_value());
+    BlockHeader result = opt_result.value();
 
     EXPECT_EQ(result.m_parentHash, 0);
     EXPECT_EQ(result.m_number, 1);
