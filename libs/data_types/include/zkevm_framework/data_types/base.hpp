@@ -4,11 +4,27 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
+#include <optional>
 #include <vector>
 
 namespace data_types {
     /// @brief Vector of bytes.
     using bytes = std::vector<std::byte>;
+
+    /**
+     * @brief Read bytes from input char stream.
+     *
+     * @return bytes read. If I/O error occured, returns `std::nullopt`.
+     */
+    std::optional<bytes> read_bytes(std::istream& src);
+
+    /**
+     * @brief Write bytes to output char stream.
+     *
+     * @return number of bytes written. If I/O error occured, returns -1.
+     */
+    int write_bytes(const bytes& src, std::ostream& out);
 
     /// @brief Size of account address in bytes.
     constexpr size_t address_size = 20;

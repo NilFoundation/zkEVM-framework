@@ -15,6 +15,7 @@ find_package(sszpp REQUIRED)
 set(SOURCES
     account.cpp
     account_block.cpp
+    base.cpp
     block.cpp
     block_header.cpp
     message.cpp
