@@ -13,6 +13,8 @@
 #define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
 #include <nil/blueprint/assert.hpp>
@@ -77,6 +79,9 @@ int curve_dependent_main(const std::string& input_block_file_name,
     auto input_block = opt_input_block.value();
     input_block_file.close();
 
+    // set log level
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
+
     // get header of the current block
     const auto block_header = input_block.m_currentBlock;
 
@@ -86,6 +91,16 @@ int curve_dependent_main(const std::string& input_block_file_name,
 
     const evmc_address empty_addr = to_evmc_address({0});
 
+    BOOST_LOG_TRIVIAL(debug) << "Input Block:\n"
+                             << "  coinbase = " << to_str(block_header.m_coinbase) << "\n"
+                             << "  block number = " << block_header.m_number << "\n"
+                             << "  timestamp = " << block_header.m_timestamp << "\n"
+                             << "  gas limit = " << block_header.m_gasLimit << "\n"
+                             << "  prev randao = " << block_header.m_prevrandao << "\n"
+                             << "  chain id = " << block_header.m_chain_id << "\n"
+                             << "  base fee = " << block_header.m_basefee << "\n"
+                             << "  blob base fee = " << block_header.m_blob_basefee << "\n"
+                             << "\n";
     // transaction and block data for execution
     struct evmc_tx_context tx_context = {
         // per transaction value
@@ -95,9 +110,9 @@ int curve_dependent_main(const std::string& input_block_file_name,
         .tx_origin = empty_addr, /**< The transaction origin account. */
 
         .block_coinbase = to_evmc_address(block_header.m_coinbase), /**< The miner of the block. */
-        .block_number = block_header.m_number,                      /**< The block number. */
-        .block_timestamp = block_header.m_timestamp,                /**< The block timestamp. */
-        .block_gas_limit = block_header.m_gasLimit,                 /**< The block gas limit. */
+        .block_number = (int64_t)block_header.m_number,             /**< The block number. */
+        .block_timestamp = (int64_t)block_header.m_timestamp,       /**< The block timestamp. */
+        .block_gas_limit = (int64_t)block_header.m_gasLimit,        /**< The block gas limit. */
         .block_prev_randao =
             to_uint256be(block_header.m_prevrandao), /**< The block previous RANDAO (EIP-4399). */
         .chain_id = to_uint256be(block_header.m_chain_id), /**< The blockchain's ChainID. */
@@ -127,6 +142,10 @@ int curve_dependent_main(const std::string& input_block_file_name,
     for (const auto& input_msg : input_block.m_inputMsgs) {
         const evmc_address origin_addr = to_evmc_address(input_msg.m_info.m_src);
         tx_context.tx_origin = origin_addr;
+
+        BOOST_LOG_TRIVIAL(debug) << "process CALL message\n  from "
+                                 << to_str(input_msg.m_info.m_src) << " to "
+                                 << to_str(input_msg.m_info.m_dst) << "\n";
 
         // check if transaction in block
         const auto acc_block_it =
@@ -186,7 +205,24 @@ int curve_dependent_main(const std::string& input_block_file_name,
                                    .create2_salt = 0,
                                    .code_address = origin_addr};
 
-        assigner_instance.evaluate(vm, host_interface, ctx, rev, &msg, code.data(), code.size());
+        BOOST_LOG_TRIVIAL(debug) << "evaluate transaction " << transaction.m_id << "\n"
+                                 << "  type = " << to_str(transaction.m_type) << "\n"
+                                 << "  nonce = " << transaction.m_nonce << "\n"
+                                 << "  value = " << transaction.m_value << "\n"
+                                 << "  gas price = " << transaction.m_gasPrice << "\n"
+                                 << "  gas = " << transaction.m_gas << "\n"
+                                 << "  code size = " << transaction.m_data.size() << "\n";
+
+        auto res = assigner_instance.evaluate(vm, host_interface, ctx, rev, &msg, code.data(),
+                                              code.size());
+
+        BOOST_LOG_TRIVIAL(debug) << "evaluate result = " << to_str(res.status_code) << "\n";
+        if (res.status_code == EVMC_SUCCESS) {
+            BOOST_LOG_TRIVIAL(debug) << "create_address = " << to_str(res.create_address) << "\n"
+                                     << "gas_left = " << res.gas_left << "\n"
+                                     << "gas_refund = " << res.gas_refund << "\n"
+                                     << "output size = " << res.output_size << "\n";
+        }
     }
 
     // TODO: write assignment tables to assignment_table_file_name
