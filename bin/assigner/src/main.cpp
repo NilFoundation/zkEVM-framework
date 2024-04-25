@@ -70,13 +70,14 @@ int curve_dependent_main(const std::string& input_block_file_name,
         std::cerr << "Could not open the file - '" << input_block_file_name << "'" << std::endl;
         return -1;
     }
-    auto opt_input_block = data_types::Block::deserialize(input_block_file);
-    if (!opt_input_block.has_value()) {
-        std::cerr << "Could not read - '" << input_block_file_name << "'" << std::endl;
+    auto maybe_input_block = data_types::Block::deserialize(input_block_file);
+    if (!maybe_input_block.has_value()) {
+        std::cerr << "Could not read - '" << input_block_file_name << "'"
+                  << ": " << maybe_input_block.error() << std::endl;
         input_block_file.close();
         return -1;
     }
-    auto input_block = opt_input_block.value();
+    auto input_block = maybe_input_block.value();
     input_block_file.close();
 
     // set log level
