@@ -6,10 +6,11 @@
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_MESSAGE_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_MESSAGE_HPP_
 
+#include <expected>
 #include <iostream>
-#include <optional>
 
 #include "zkevm_framework/data_types/base.hpp"
+#include "zkevm_framework/data_types/errors.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
 
 namespace data_types {
@@ -26,20 +27,18 @@ namespace data_types {
             : m_src(src), m_dst(dst), m_value(value) {}
 
         /// @returns the SSZ serialisation
-        bytes serialize() const;
+        std::expected<bytes, SerializationError> serialize() const noexcept;
 
-        /**
-         * @brief write SSZ serialization to stream
-         *
-         * @return number of bytes written. If I/O error occured, returns -1.
-         */
-        int serialize(std::ostream& out) const;
+        /// @brief write SSZ serialization to stream
+        std::expected<void, SerializationError> serialize(std::ostream& out) const noexcept;
 
         /// @brief deserizalize from SSZ
-        static CommonMsgInfo deserialize(const bytes& src);
+        static std::expected<CommonMsgInfo, SerializationError> deserialize(
+            const bytes& src) noexcept;
 
         /// @brief deserizalize from SSZ
-        static std::optional<CommonMsgInfo> deserialize(std::istream& src);
+        static std::expected<CommonMsgInfo, SerializationError> deserialize(
+            std::istream& src) noexcept;
     };
 
     class InMsg {
@@ -53,20 +52,16 @@ namespace data_types {
             : m_info(info), m_transaction(transaction) {}
 
         /// @returns the SSZ serialisation
-        bytes serialize() const;
+        std::expected<bytes, SerializationError> serialize() const noexcept;
 
-        /**
-         * @brief write SSZ serialization to stream
-         *
-         * @return number of bytes written. If I/O error occured, returns -1.
-         */
-        int serialize(std::ostream& out) const;
+        /// @brief write SSZ serialization to stream
+        std::expected<void, SerializationError> serialize(std::ostream& out) const noexcept;
 
         /// @brief deserizalize from SSZ
-        static InMsg deserialize(const bytes& src);
+        static std::expected<InMsg, SerializationError> deserialize(const bytes& src) noexcept;
 
         /// @brief deserizalize from SSZ
-        static std::optional<InMsg> deserialize(std::istream& src);
+        static std::expected<InMsg, SerializationError> deserialize(std::istream& src) noexcept;
     };
 
     class OutMsg {
@@ -81,20 +76,16 @@ namespace data_types {
             : m_info(info), m_transaction(transaction) {}
 
         /// @returns the SSZ serialisation
-        bytes serialize() const;
+        std::expected<bytes, SerializationError> serialize() const noexcept;
 
-        /**
-         * @brief write SSZ serialization to stream
-         *
-         * @return number of bytes written. If I/O error occured, returns -1.
-         */
-        int serialize(std::ostream& out) const;
+        /// @brief write SSZ serialization to stream
+        std::expected<void, SerializationError> serialize(std::ostream& out) const noexcept;
 
         /// @brief deserizalize from SSZ
-        static OutMsg deserialize(const bytes& src);
+        static std::expected<OutMsg, SerializationError> deserialize(const bytes& src) noexcept;
 
         /// @brief deserizalize from SSZ
-        static std::optional<OutMsg> deserialize(std::istream& src);
+        static std::expected<OutMsg, SerializationError> deserialize(std::istream& src) noexcept;
     };
 }  // namespace data_types
 
