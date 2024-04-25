@@ -14,6 +14,7 @@ set(PUBLIC_HEADERS
     include/${PUBLIC_HEADERS_PREFIX}/base.hpp
     include/${PUBLIC_HEADERS_PREFIX}/block.hpp
     include/${PUBLIC_HEADERS_PREFIX}/block_header.hpp
+    include/${PUBLIC_HEADERS_PREFIX}/errors.hpp
     include/${PUBLIC_HEADERS_PREFIX}/message.hpp
     include/${PUBLIC_HEADERS_PREFIX}/mpt.hpp
     include/${PUBLIC_HEADERS_PREFIX}/state.hpp

@@ -15,6 +15,7 @@ set(SOURCES
     base.cpp
     block.cpp
     block_header.cpp
+    errors.cpp
     message.cpp
     state.cpp
     transaction.cpp
