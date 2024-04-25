@@ -7,10 +7,11 @@
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_TRANSACTION_HPP_
 
 #include <cstdint>
+#include <expected>
 #include <iostream>
-#include <optional>
 
 #include "zkevm_framework/data_types/base.hpp"
+#include "zkevm_framework/data_types/errors.hpp"
 
 namespace data_types {
     /// @brief Transaction.
@@ -47,20 +48,18 @@ namespace data_types {
               m_sender(sender) {}
 
         /// @returns the SSZ serialization of this transaction
-        bytes serialize() const;
+        std::expected<bytes, SerializationError> serialize() const noexcept;
 
-        /**
-         * @brief write SSZ serialization to stream
-         *
-         * @return number of bytes written. If I/O error occured, returns -1.
-         */
-        int serialize(std::ostream& out) const;
+        /// @brief write SSZ serialization to stream
+        std::expected<void, SerializationError> serialize(std::ostream& out) const noexcept;
 
         /// @brief deserizalize from SSZ
-        static Transaction deserialize(const bytes& src);
+        static std::expected<Transaction, SerializationError> deserialize(
+            const bytes& src) noexcept;
 
         /// @brief deserizalize from SSZ
-        static std::optional<Transaction> deserialize(std::istream& src);
+        static std::expected<Transaction, SerializationError> deserialize(
+            std::istream& src) noexcept;
     };
 }  // namespace data_types
 
