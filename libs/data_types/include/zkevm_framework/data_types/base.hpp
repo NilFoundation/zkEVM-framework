@@ -4,9 +4,11 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <expected>
 #include <iostream>
-#include <optional>
 #include <vector>
+
+#include "zkevm_framework/data_types/errors.hpp"
 
 namespace data_types {
     /// @brief Vector of bytes.
@@ -15,16 +17,16 @@ namespace data_types {
     /**
      * @brief Read bytes from input char stream.
      *
-     * @return bytes read. If I/O error occured, returns `std::nullopt`.
+     * @return bytes read. IOError if any I/O error occured during reading from istream.
      */
-    std::optional<bytes> read_bytes(std::istream& src);
+    std::expected<bytes, IOError> read_bytes(std::istream& in) noexcept;
 
     /**
      * @brief Write bytes to output char stream.
      *
-     * @return number of bytes written. If I/O error occured, returns -1.
+     * @return IOError if any I/O error occured during writing into ostream.
      */
-    int write_bytes(const bytes& src, std::ostream& out);
+    std::expected<void, IOError> write_bytes(const bytes& src, std::ostream& out) noexcept;
 
     /// @brief Size of account address in bytes.
     constexpr size_t address_size = 20;
