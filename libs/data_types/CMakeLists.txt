@@ -2,6 +2,9 @@ set(LIBRARY_NAME zkEVMDataTypes)
 
 add_library(${LIBRARY_NAME} STATIC)
 
+# SSZ++ requires C++23, also DataTypes is using <expected>
+set_target_properties(${LIBRARY_NAME} PROPERTIES CXX_STANDARD 23)
+
 add_subdirectory(src)
 
 set(PUBLIC_HEADERS_PREFIX zkevm_framework/data_types)
