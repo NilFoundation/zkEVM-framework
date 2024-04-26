@@ -1,6 +1,7 @@
 set(TARGET_NAME assigner)
 set(SOURCES
-    src/main.cpp)
+    src/main.cpp
+    src/utils.cpp)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
