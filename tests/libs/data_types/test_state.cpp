@@ -27,9 +27,9 @@ TEST(DataTypesStateTests, SerializeDeserializeState) {
     accounts.push_back(acc);
 
     State s(0, 1, 2, 3, 4, 5, true, 7, 8, 9, out_msgs, accounts);
-    bytes blob = s.serialize();
+    bytes blob = *s.serialize();
 
-    State result = State::deserialize(blob);
+    State result = *State::deserialize(blob);
 
     EXPECT_EQ(result.m_globalId, 0);
     EXPECT_EQ(result.m_shardId, 1);
@@ -83,7 +83,7 @@ TEST(DataTypesStateTests, StreamSerializeDeserializeState) {
     std::stringstream ss;
     s.serialize(ss);
 
-    std::optional<State> opt_result = State::deserialize(ss);
+    std::optional<State> opt_result = *State::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     State result = opt_result.value();
 

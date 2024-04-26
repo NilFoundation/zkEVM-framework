@@ -33,9 +33,9 @@ TEST(DataTypesBlockTests, SerializeDeserializeBlock) {
     out_msgs.push_back({msg_info, transaction});
 
     Block b(account_blocks, in_msgs, out_msgs, prev_hdr, curr_hdr);
-    bytes blob = b.serialize();
+    bytes blob = *b.serialize();
 
-    Block block = Block::deserialize(blob);
+    Block block = *Block::deserialize(blob);
 
     EXPECT_EQ(block.m_accountBlocks.size(), 1);
     AccountBlock acc_block = block.m_accountBlocks[0];
@@ -130,7 +130,7 @@ TEST(DataTypesBlockTests, StreamSerializeDeserializeBlock) {
     std::stringstream ss;
     b.serialize(ss);
 
-    std::optional<Block> opt_result = Block::deserialize(ss);
+    std::optional<Block> opt_result = *Block::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     Block block = opt_result.value();
 

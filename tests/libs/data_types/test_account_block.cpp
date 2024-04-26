@@ -17,9 +17,9 @@ TEST(DataTypesAccountTests, SerializeDeserializeAccount) {
     MPTNode<Transaction> transactions = {};
     transactions.push_back(transaction);
     AccountBlock acc(addr, transactions);
-    bytes blob = acc.serialize();
+    bytes blob = *acc.serialize();
 
-    AccountBlock result = AccountBlock::deserialize(blob);
+    AccountBlock result = *AccountBlock::deserialize(blob);
 
     EXPECT_EQ(result.m_accountAddress, addr);
     EXPECT_EQ(result.m_transactions.size(), 1);
@@ -47,7 +47,7 @@ TEST(DataTypesAccountTests, StreamSerializeDeserializeAccount) {
     std::stringstream ss;
     acc.serialize(ss);
 
-    std::optional<AccountBlock> opt_result = AccountBlock::deserialize(ss);
+    std::optional<AccountBlock> opt_result = *AccountBlock::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     AccountBlock result = opt_result.value();
 

@@ -16,9 +16,9 @@ TEST(DataTypesMessageTests, SerializeDeserializeCommonMsgInfo) {
     size_t value = 42;
     CommonMsgInfo info(src, dst, value);
 
-    bytes blob = info.serialize();
+    bytes blob = *info.serialize();
 
-    CommonMsgInfo result = CommonMsgInfo::deserialize(blob);
+    CommonMsgInfo result = *CommonMsgInfo::deserialize(blob);
 
     EXPECT_EQ(result.m_src, src);
     EXPECT_EQ(result.m_dst, dst);
@@ -37,7 +37,7 @@ TEST(DataTypesMessageTests, StreamSerializeDeserializeCommonMsgInfo) {
     std::stringstream ss;
     info.serialize(ss);
 
-    std::optional<CommonMsgInfo> opt_result = CommonMsgInfo::deserialize(ss);
+    std::optional<CommonMsgInfo> opt_result = *CommonMsgInfo::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     CommonMsgInfo result = opt_result.value();
 
@@ -57,9 +57,9 @@ TEST(DataTypesMessageTests, SerializeDeserializeInMsg) {
     CommonMsgInfo info(src, dst, value);
     InMsg msg(info, transaction);
 
-    bytes blob = msg.serialize();
+    bytes blob = *msg.serialize();
 
-    InMsg result = InMsg::deserialize(blob);
+    InMsg result = *InMsg::deserialize(blob);
 
     EXPECT_EQ(result.m_info.m_src, src);
     EXPECT_EQ(result.m_info.m_dst, dst);
@@ -90,7 +90,7 @@ TEST(DataTypesMessageTests, StreamSerializeDeserializeInMsg) {
     std::stringstream ss;
     msg.serialize(ss);
 
-    std::optional<InMsg> opt_result = InMsg::deserialize(ss);
+    std::optional<InMsg> opt_result = *InMsg::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     InMsg result = opt_result.value();
 
@@ -120,9 +120,9 @@ TEST(DataTypesMessageTests, SerializeDeserializeOutMsg) {
     CommonMsgInfo info(src, dst, value);
     OutMsg msg(info, transaction);
 
-    bytes blob = msg.serialize();
+    bytes blob = *msg.serialize();
 
-    OutMsg result = OutMsg::deserialize(blob);
+    OutMsg result = *OutMsg::deserialize(blob);
 
     EXPECT_EQ(result.m_info.m_src, src);
     EXPECT_EQ(result.m_info.m_dst, dst);
@@ -153,7 +153,7 @@ TEST(DataTypesMessageTests, StreamSerializeDeserializeOutMsg) {
     std::stringstream ss;
     msg.serialize(ss);
 
-    std::optional<OutMsg> opt_result = OutMsg::deserialize(ss);
+    std::optional<OutMsg> opt_result = *OutMsg::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     OutMsg result = opt_result.value();
 

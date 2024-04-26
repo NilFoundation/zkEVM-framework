@@ -13,9 +13,9 @@ TEST(DataTypesBlockHeaderTests, SerializeDeserializeBlockHeader) {
                     0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A, 0x0A};
     bytes data = {std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}};
     BlockHeader hdr(0, 1, 2, 3, addr, 4, 1, 55, 55, data, 5);
-    bytes blob = hdr.serialize();
+    bytes blob = *hdr.serialize();
 
-    BlockHeader result = BlockHeader::deserialize(blob);
+    BlockHeader result = *BlockHeader::deserialize(blob);
 
     EXPECT_EQ(result.m_parentHash, 0);
     EXPECT_EQ(result.m_number, 1);
@@ -38,7 +38,7 @@ TEST(DataTypesBlockHeaderTests, StreamSerializeDeserializeBlockHeader) {
     std::stringstream ss;
     hdr.serialize(ss);
 
-    std::optional<BlockHeader> opt_result = BlockHeader::deserialize(ss);
+    std::optional<BlockHeader> opt_result = *BlockHeader::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     BlockHeader result = opt_result.value();
 

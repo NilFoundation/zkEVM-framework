@@ -11,9 +11,9 @@ using namespace testing;
 
 TEST(DataTypesTransactionReceiptTests, SerializeDeserializeTransactionReceipt) {
     TransactionReceipt receipt(Transaction::ContractCreation, 0, 1);
-    bytes blob = receipt.serialize();
+    bytes blob = *receipt.serialize();
 
-    TransactionReceipt result = TransactionReceipt::deserialize(blob);
+    TransactionReceipt result = *TransactionReceipt::deserialize(blob);
 
     EXPECT_EQ(result.m_gasUsed, 1);
     EXPECT_EQ(result.m_stateRoot, 0);
@@ -25,7 +25,7 @@ TEST(DataTypesTransactionReceiptTests, StreamSerializeDeserializeTransactionRece
     std::stringstream ss;
     receipt.serialize(ss);
 
-    std::optional<TransactionReceipt> opt_result = TransactionReceipt::deserialize(ss);
+    std::optional<TransactionReceipt> opt_result = *TransactionReceipt::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     TransactionReceipt result = opt_result.value();
 

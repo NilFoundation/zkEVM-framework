@@ -17,9 +17,9 @@ TEST(DataTypesTransactionTests, SerializeDeserializeTransaction) {
     bytes data = {std::byte{0xAA}, std::byte{0xBB}, std::byte{0xCC}};
     Transaction transaction(0, Transaction::Type::ContractCreation, 1, 2, addr, 3, 4, data, addr);
 
-    bytes blob = transaction.serialize();
+    bytes blob = *transaction.serialize();
 
-    Transaction result = Transaction::deserialize(blob);
+    Transaction result = *Transaction::deserialize(blob);
 
     EXPECT_EQ(result.m_id, 0);
     EXPECT_EQ(result.m_type, Transaction::Type::ContractCreation);
@@ -41,7 +41,7 @@ TEST(DataTypesTransactionTests, StreamSerializeDeserializeTransaction) {
     std::stringstream ss;
     transaction.serialize(ss);
 
-    std::optional<Transaction> opt_result = Transaction::deserialize(ss);
+    std::optional<Transaction> opt_result = *Transaction::deserialize(ss);
     EXPECT_TRUE(opt_result.has_value());
     Transaction result = opt_result.value();
 
