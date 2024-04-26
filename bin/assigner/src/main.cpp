@@ -28,7 +28,8 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 
-#include "utils.hpp"
+#include "utils.h"
+#include "vm_host.h"
 #include "zkevm_framework/data_types/account.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
@@ -386,12 +387,10 @@ int main(int argc, char* argv[]) {
             std::cerr << "ed25519 curve based circuits are not supported yet\n";
             break;
         }
-            /*case 3: {
-                return curve_dependent_main<
-                    typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
-                    input_block_file_name, input_assignment_table_file_name,
-            assignment_table_file_name, log_options[log_level], column_sizes); break;
-            }*/
+        case 3: {
+            std::cerr << "bls12381 curve based circuits are not supported yet\n";
+            break;
+        }
     };
 
     return 0;

@@ -1,16 +1,8 @@
-#ifndef ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_UTILS_HPP_
-#define ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_UTILS_HPP_
+#include "utils.h"
 
 #include <fstream>
 #include <iostream>
-#include <map>
-
-#include "execution_state.hpp"
-#include "instructions_opcodes.hpp"
-#include "vm.hpp"
-#include "vm_host.h"
-#include "zkevm_framework/data_types/base.hpp"
-#include "zkevm_framework/data_types/block.hpp"
+#include <sstream>
 
 evmc_call_kind evmc_msg_kind(const data_types::Transaction::Type& type) {
     switch (type) {
@@ -21,16 +13,6 @@ evmc_call_kind evmc_msg_kind(const data_types::Transaction::Type& type) {
         default:
             return EVMC_CALL;
     };
-}
-
-template<typename T>
-evmc::uint256be to_uint256be(T v) {
-    evmc::uint256be res;
-    uint8_t mask = (1 << 8) - 1;
-    for (uint8_t i = 0; i <= 31; i++) {
-        res.bytes[i] = (v >> (i - 31) * 8);
-    }
-    return res;
 }
 
 evmc_address to_evmc_address(const data_types::Address& v) {
@@ -127,5 +109,3 @@ std::string to_str(evmc_status_code code) {
             return "none";
     };
 }
-
-#endif  // ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_UTILS_HPP_
