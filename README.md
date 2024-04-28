@@ -52,6 +52,13 @@ git clone https://<GITGUB_TOKEN>@github.com/NilFoundation/zkEVM-framework.git
 Instead of installing all dependencies manually,
 you can use [Nix](https://nixos.org/download#download-nix) environment with all installed deps.
 
+For using experimantal features `flake`, `nix-command` add follow line
+to your Nix configuration file (`/etc/nix/nix.conf`):
+
+```plaintext
+experimental-features = nix-command flakes
+```
+
 Because zkEVM-framework currently has EVM-assigner as a dependency which is private repository,
 it is required to configure Nix with GitHub Personal Access Token (PAT).
 In order to generate your PAT, go [here](https://github.com/settings/tokens). Your token
@@ -165,6 +172,11 @@ To see HTML documentation, open `${BUILD_DIR}/html`.
 
 ## Usage
 
-```plain
-None
+### Block call
+
+Account storage contains one account with deployed contract.
+Incoming block has one transaction which call deployed contract
+
+```bash
+nix run .#assigner [-L] [--override-input nil_evm_assigner /path_to/evm-assigner] -- -b bin/assigner/example_data/call_block.ssz -t assignments -e pallas [--log-level debug]
 ```

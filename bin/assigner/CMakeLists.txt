@@ -11,6 +11,6 @@ target_include_directories(${TARGET_NAME}
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_link_libraries(${TARGET_NAME} PRIVATE evmone zkEVMDataTypes ${Boost_LIBRARIES})
+target_link_libraries(${TARGET_NAME} PRIVATE evmone evmone_assigner zkEVMDataTypes ${Boost_LIBRARIES})
 
 install(TARGETS ${TARGET_NAME})

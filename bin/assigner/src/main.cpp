@@ -129,15 +129,17 @@ int curve_dependent_main(const std::string& input_block_file_name,
     const struct evmc_host_interface* host_interface = &evmc::Host::get_interface();
 
     // init current account storage
-    vm_accounts account_storage = {{}};
+    evmc::accounts account_storage = {{}};
     const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
-    /*for (const auto& accountBlock : accountBlocks) {
-        vm_account acc;
-        account_storage.insert(std::pair<evmc::address,
-    vm_account>(to_evmc_address(accountBlock.m_accountAddress), acc));
-    }*/
+    // HARDCODE simple deployed contract which does simple a + b
+    // TODO read storage from file
+    evmc::account acc;
+    acc.code = {evmone::OP_PUSH1, 4, evmone::OP_PUSH1, 8, evmone::OP_MUL};
+    acc.balance = to_uint256be(0);
+    evmc_address acc_addr = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+    account_storage.insert(std::pair<evmc::address, evmc::account>(acc_addr, acc));
 
-    VmHost host(tx_context, account_storage);
+    VMHost host(tx_context, &assigner_instance, account_storage);
     struct evmc_host_context* ctx = host.to_context();
 
     for (const auto& input_msg : input_block.m_inputMsgs) {
@@ -171,22 +173,28 @@ int curve_dependent_main(const std::string& input_block_file_name,
         }
 
         const auto& transaction = input_msg.m_transaction;
+        if (transaction.m_type != data_types::Transaction::Type::ContractCreation &&
+            transaction.m_type != data_types::Transaction::Type::MessageCall) {
+            BOOST_LOG_TRIVIAL(debug) << "skip transaction " << transaction.m_id << "("
+                                     << to_str(transaction.m_type) << "). Nothing to do\n";
+            continue;
+        }
         // set tansaction related fields
         tx_context.tx_gas_price = to_uint256be(transaction.m_gasPrice);
-
-        /*std::vector<uint8_t> code = {
-            evmone::OP_PUSH1,
-            4,
-            evmone::OP_PUSH1,
-            8,
-            evmone::OP_MUL,
-            };*/
         data_types::bytes transaction_code = transaction.m_data;
         std::vector<uint8_t> code(transaction_code.size());
         size_t count = 0;
-        std::for_each(
-            transaction_code.begin(), transaction_code.end(),
-            [&count, &code](const std::byte& v) { code[count] = to_integer<uint8_t>(v); });
+        std::for_each(transaction_code.begin(), transaction_code.end(),
+                      [&count, &code](const std::byte& v) {
+                          code[count] = to_integer<uint8_t>(v);
+                          count++;
+                      });
+        if (count != code.size()) {
+            std::cerr << "Failed copy transaction" << transaction.m_id
+                      << " code: expected size = " << code.size() << ", real = " << count
+                      << std::endl;
+            return -1;
+        }
 
         // init messge associated with transaction
         const evmc_uint256be value = to_uint256be(transaction.m_value);
@@ -194,7 +202,7 @@ int curve_dependent_main(const std::string& input_block_file_name,
         const evmc_address recipient_addr = to_evmc_address(transaction.m_receiveAddress);
         const int64_t gas = transaction.m_gas;
         const uint8_t input[] = "";
-        struct evmc_message msg = {.kind = EVMC_CALL,
+        struct evmc_message msg = {.kind = evmc_msg_kind(transaction.m_type),
                                    .flags = uint32_t{EVMC_STATIC},
                                    .depth = 0,
                                    .gas = gas,
@@ -225,6 +233,8 @@ int curve_dependent_main(const std::string& input_block_file_name,
                                      << "output size = " << res.output_size << "\n";
         }
     }
+
+    BOOST_LOG_TRIVIAL(debug) << "print assignment tables " << assignments.size() << "\n";
 
     // TODO: write assignment tables to assignment_table_file_name
 
@@ -376,13 +386,12 @@ int main(int argc, char* argv[]) {
             std::cerr << "ed25519 curve based circuits are not supported yet\n";
             break;
         }
-        case 3: {
-            return curve_dependent_main<
-                typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
-                input_block_file_name, input_assignment_table_file_name, assignment_table_file_name,
-                log_options[log_level], column_sizes);
-            break;
-        }
+            /*case 3: {
+                return curve_dependent_main<
+                    typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
+                    input_block_file_name, input_assignment_table_file_name,
+            assignment_table_file_name, log_options[log_level], column_sizes); break;
+            }*/
     };
 
     return 0;
