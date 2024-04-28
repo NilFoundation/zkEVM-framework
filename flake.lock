@@ -169,11 +169,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1713775188,
-        "narHash": "sha256-KHtsLBmCXAssQ9mcplN4XVpgdFtevbdJL+M7B1b/nkI=",
+        "lastModified": 1714375110,
+        "narHash": "sha256-b2YPlAceiUCM/Fmx//+Rcmj9ZsDBY3M93Xg58SrXSf4=",
         "owner": "NilFoundation",
         "repo": "evm-assigner",
-        "rev": "dd169f1ee0ed17ccc5dcef55e39ecdc475e6786d",
+        "rev": "cc7b4d8725ed36fbac78affba9d95d1ab243b50f",
         "type": "github"
       },
       "original": {
@@ -188,17 +188,16 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1712853518,
+        "lastModified": 1713444891,
         "narHash": "sha256-eTnjr51YYlU7PeFH6xJIpytaOne5NFHckLMj3RaxOlI=",
         "ref": "refs/heads/master",
-        "rev": "01964c21ab68e0cd77e08c0a9225f220a5b6bf2d",
+        "rev": "7cf2850fc86fa93ed89d2358fa38f339a51e21b7",
         "revCount": 1204,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/NilFoundation/zkllvm-blueprint"
       },
       "original": {
-        "rev": "01964c21ab68e0cd77e08c0a9225f220a5b6bf2d",
         "submodules": true,
         "type": "git",
         "url": "https://github.com/NilFoundation/zkllvm-blueprint"
