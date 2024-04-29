@@ -2,7 +2,7 @@
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_SRC_CONTAINERS_ACCOUNT_BLOCK_HPP_
 
 #include "containers/transaction.hpp"
-#include "sszpp/ssz++.hpp"
+#include "ssz++.hpp"
 #include "zkevm_framework/data_types/account_block.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/mpt.hpp"
