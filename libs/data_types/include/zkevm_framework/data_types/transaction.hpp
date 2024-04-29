@@ -47,6 +47,18 @@ namespace data_types {
               m_receiveAddress(receiveAddress),
               m_sender(sender) {}
 
+        /// Default constructor to be able to use
+        Transaction()
+            : m_id(0),
+              m_value(0),
+              m_gasPrice(0),
+              m_gas(0),
+              m_data(),
+              m_nonce(0),
+              m_type(NullTransaction),
+              m_receiveAddress(),
+              m_sender() {}
+
         /// @returns the SSZ serialization of this transaction
         std::expected<bytes, SerializationError> serialize() const noexcept;
 

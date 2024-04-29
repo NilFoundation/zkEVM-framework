@@ -23,7 +23,7 @@ namespace data_types {
         Address m_accountAddress;
         MPTNode<Transaction> m_transactions;
 
-        AccountBlock(Address accountAddress, MPTNode<Transaction>& transactions)
+        AccountBlock(Address accountAddress, const MPTNode<Transaction>& transactions)
             : m_accountAddress(accountAddress), m_transactions(transactions) {}
 
         /// @returns the SSZ serialisation
