@@ -5,7 +5,7 @@
 
 #include "containers/account.hpp"
 #include "containers/message.hpp"
-#include "sszpp/ssz++.hpp"
+#include "ssz++.hpp"
 #include "zkevm_framework/data_types/account.hpp"
 #include "zkevm_framework/data_types/message.hpp"
 #include "zkevm_framework/data_types/mpt.hpp"

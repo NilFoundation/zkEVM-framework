@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include "sszpp/ssz++.hpp"
+#include "ssz++.hpp"
 #include "zkevm_framework/data_types/account.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 

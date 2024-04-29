@@ -11,7 +11,7 @@
 #include <iostream>
 #include <optional>
 
-#include "sszpp/ssz++.hpp"
+#include "ssz++.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/errors.hpp"
 

@@ -4,7 +4,7 @@
 #include "containers/account_block.hpp"
 #include "containers/block_header.hpp"
 #include "containers/message.hpp"
-#include "sszpp/ssz++.hpp"
+#include "ssz++.hpp"
 #include "zkevm_framework/data_types/account_block.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/message.hpp"
