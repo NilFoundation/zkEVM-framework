@@ -1,0 +1,65 @@
+{
+	"previous_header" : {
+	  "parent_hash" : 0,
+	  "number" : 0,
+	  "gas_limit" : 0,
+	  "gas_used" : 0,
+	  "coinbase" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+	  "prevrandao" : 0,
+	  "chain_id" : 0,
+	  "basefee" : 0,
+	  "blob_basefee" : 0,
+	  "timestamp" : 0
+	},
+	"current_header" : {
+      "parent_hash" : 0,
+	  "number" : 0,
+	  "gas_limit" : 0,
+	  "gas_used" : 0,
+	  "coinbase" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+	  "prevrandao" : 0,
+	  "chain_id" : 0,
+	  "basefee" : 0,
+	  "blob_basefee" : 0,
+	  "timestamp" : 0
+	},
+	"transactions" : [
+		{
+			"id" : 0,
+			"type" : "ContractCreation",
+			"nonce" : 0,
+			"value" : 0,
+			"receive_address" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+			"gas_price" : 0,
+			"gas" : 0,
+			"data" : "0x3a3a4a",
+			"sender" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3"
+		}
+	],
+  "account_blocks" : [
+	  {
+		  "account_address" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+		  "transactions" : [0]
+	  },
+	  {
+		  "account_address" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+          "transactions" : [0]
+	  }
+  ],
+  "input_messages" : [
+	  {
+		  "src" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+		  "dst" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+		  "value" : 0,
+		  "transaction" : 0
+	  }
+  ],
+  "output_messages" : [
+	  {
+		  "src" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+		  "dst" : "0x3aa33aa33aa33aa33aa33aa33aa33aa33aa33aa3",
+		  "value" : 0,
+		  "transaction" : 0
+	  }
+  ]
+}
