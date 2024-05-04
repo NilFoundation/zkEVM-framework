@@ -6,6 +6,7 @@
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_MESSAGE_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_MESSAGE_HPP_
 
+#include <cstring>
 #include <expected>
 #include <iostream>
 
@@ -25,6 +26,9 @@ namespace data_types {
 
         CommonMsgInfo(Address src, Address dst, size_t value)
             : m_src(src), m_dst(dst), m_value(value) {}
+
+        /// @brief Default constructor - zero initializer
+        CommonMsgInfo() : m_value(0) { std::memset(m_src.data(), 0, m_src.size()); }
 
         /// @returns the SSZ serialisation
         std::expected<bytes, SerializationError> serialize() const noexcept;
@@ -51,6 +55,9 @@ namespace data_types {
         InMsg(CommonMsgInfo info, Transaction transaction)
             : m_info(info), m_transaction(transaction) {}
 
+        /// @brief Default constructor - zero initializer
+        InMsg() {}
+
         /// @returns the SSZ serialisation
         std::expected<bytes, SerializationError> serialize() const noexcept;
 
@@ -74,6 +81,9 @@ namespace data_types {
 
         OutMsg(CommonMsgInfo info, Transaction transaction)
             : m_info(info), m_transaction(transaction) {}
+
+        /// @brief Default constructor - zero initializer
+        OutMsg() {}
 
         /// @returns the SSZ serialisation
         std::expected<bytes, SerializationError> serialize() const noexcept;

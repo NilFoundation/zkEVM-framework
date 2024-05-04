@@ -35,6 +35,9 @@ namespace data_types {
               m_previousBlock(previousBlock),
               m_currentBlock(currentBlock) {}
 
+        /// @brief Default constructor - zero initializer
+        Block() {}
+
         /// @returns the SSZ serialization
         std::expected<bytes, SerializationError> serialize() const noexcept;
 

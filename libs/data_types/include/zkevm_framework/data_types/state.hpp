@@ -50,6 +50,19 @@ namespace data_types {
               m_outMsg(outMsg),
               m_accounts(accounts) {}
 
+        /// @brief Default constructor - zero initializer
+        State()
+            : m_globalId(0),
+              m_shardId(0),
+              m_seqNo(0),
+              m_vertSeqNo(0),
+              m_genLt(0),
+              m_minRefMcSeqno(0),
+              m_beforeSplit(false),
+              m_genUtime(0),
+              m_totalBalance(0),
+              m_totalValidatorFees(0) {}
+
         /// @returns the SSZ serialization
         std::expected<bytes, SerializationError> serialize() const noexcept;
 

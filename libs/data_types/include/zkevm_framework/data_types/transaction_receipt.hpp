@@ -28,6 +28,9 @@ namespace data_types {
         TransactionReceipt(Transaction::Type type, Hash root, size_t gasUsed)
             : m_type(type), m_stateRoot(root), m_gasUsed(gasUsed) {}
 
+        /// @brief Default constructor - zero initializer
+        TransactionReceipt() : m_type(Transaction::NullTransaction), m_stateRoot(0), m_gasUsed(0) {}
+
         /// @returns the SSZ serialization of transaction receipt
         std::expected<bytes, SerializationError> serialize() const noexcept;
 

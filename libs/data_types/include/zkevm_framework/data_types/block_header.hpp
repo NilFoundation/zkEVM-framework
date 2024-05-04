@@ -7,6 +7,7 @@
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_BLOCK_HEADER_HPP_
 
 #include <cstdint>
+#include <cstring>
 #include <expected>
 #include <iostream>
 
@@ -51,6 +52,18 @@ namespace data_types {
               m_blob_basefee(blob_basefee),
               m_extraData(extraData),
               m_timestamp(timestamp) {}
+
+        /// @brief Default constructor - zero initializer
+        BlockHeader()
+            : m_gasLimit(0),
+              m_gasUsed(0),
+              m_prevrandao(0),
+              m_chain_id(0),
+              m_basefee(0),
+              m_blob_basefee(0),
+              m_timestamp(0) {
+            std::memset(m_coinbase.data(), 0, m_coinbase.size());
+        }
 
         /// @returns the SSZ serialization
         std::expected<bytes, SerializationError> serialize() const noexcept;
