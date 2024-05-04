@@ -26,6 +26,9 @@ namespace data_types {
         Account(size_t nonce, size_t balance, AccessStatus access_status)
             : m_nonce(nonce), m_balance(balance), m_accessStatus(access_status) {}
 
+        /// @brief Default constructor - zero initializer
+        Account() : m_nonce(0), m_balance(0), m_accessStatus(EVMC_ACCESS_COLD) {}
+
         /// @returns the SSZ serialization
         std::expected<bytes, SerializationError> serialize() const noexcept;
 

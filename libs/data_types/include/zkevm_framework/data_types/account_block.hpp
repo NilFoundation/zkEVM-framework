@@ -6,6 +6,7 @@
 #ifndef ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_ACCOUNT_BLOCK_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_DATA_TYPES_INCLUDE_ZKEVM_FRAMEWORK_DATA_TYPES_ACCOUNT_BLOCK_HPP_
 
+#include <cstring>
 #include <expected>
 #include <iostream>
 
@@ -25,6 +26,9 @@ namespace data_types {
 
         AccountBlock(Address accountAddress, const MPTNode<Transaction>& transactions)
             : m_accountAddress(accountAddress), m_transactions(transactions) {}
+
+        /// @brief Default constructor - zero initializer
+        AccountBlock() { std::memset(m_accountAddress.data(), 0, m_accountAddress.size()); }
 
         /// @returns the SSZ serialisation
         std::expected<bytes, SerializationError> serialize() const noexcept;

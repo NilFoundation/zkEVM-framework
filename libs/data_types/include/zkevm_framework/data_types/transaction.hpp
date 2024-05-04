@@ -47,7 +47,7 @@ namespace data_types {
               m_receiveAddress(receiveAddress),
               m_sender(sender) {}
 
-        /// Default constructor to be able to use
+        /// @brief Default constructor - zero initializer
         Transaction()
             : m_id(0),
               m_value(0),
