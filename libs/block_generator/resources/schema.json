@@ -1,0 +1,198 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type" :"object",
+    "description": "Block data",
+    "$defs": {
+        "transaction_type" : {
+            "enum" : ["ContractCreation", "NullTransaction", "MessageCall"]
+        },
+
+        "address": {
+            "type":"string",
+            "pattern": "^0x[0-9a-f]+$",
+            "minLength": 42,
+            "maxLength": 42
+        },
+
+        "transaction" : {
+            "type": "object",
+            "description": "Transaction data",
+            "properties": {
+                "id" :{
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "type": {
+                    "$ref": "#/$defs/transaction_type"
+                },
+                "nonce": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "value": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "receive_address": {
+                    "$ref": "#/$defs/address"
+                },
+                "gas_price": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "gas": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "data": {
+                    "type":"string",
+                    "pattern": "^0x[0-9a-f]+$"
+                },
+                "sender": {
+                    "$ref": "#/$defs/address"
+                }
+            },
+            "required": ["id", "type", "nonce", "value", "receive_address", "gas_price", "gas", "data", "sender"],
+            "additionalProperties": false
+        },
+
+        "account_block": {
+            "type":"object",
+            "description": "Account block data",
+            "properties": {
+                "account_address" :{
+                    "$ref": "#/$defs/address"
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "uniqueItems": true
+                    }
+                }
+            },
+            "required": ["account_address", "transactions"],
+            "additionalProperties": false
+        },
+
+        "block_header": {
+            "type": "object",
+            "description": "Block header data",
+            "properties": {
+                "parent_hash": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "number": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "gas_limit": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "gas_used": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "coinbase": {
+                    "$ref": "#/$defs/address"
+                },
+                "prevrandao": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "chain_id": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "basefee": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "blob_basefee": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "timestamp": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            },
+            "required": ["parent_hash", "number", "gas_limit", "gas_used", "coinbase",
+                         "prevrandao", "chain_id", "basefee", "blob_basefee", "timestamp"],
+            "additionalProperties": false
+        },
+
+        "message": {
+            "type": "object",
+            "description": "Common message data",
+            "properties": {
+                "src": {
+                    "$ref": "#/$defs/address"
+                },
+                "dst": {
+                    "$ref": "#/$defs/address"
+                },
+                "value": {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "transaction": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Id of a transaction"
+                }
+            },
+            "required": ["src", "dst", "value", "transaction"],
+            "additionalProperties": false
+        }
+    },
+
+
+    "properties": {
+        "previous_header": {
+            "description": "Block header for previous block",
+            "$ref": "#/$defs/block_header"
+        },
+        "current_header": {
+            "description": "Block header of current block",
+            "$ref": "#/$defs/block_header"
+        },
+        "account_blocks": {
+            "type":"array",
+            "description": "List of account blocks",
+            "items": {
+                "$ref": "#/$defs/account_block",
+                "uniqueItems": true
+            }
+        },
+        "transactions": {
+            "type": "array",
+            "description": "List of transactions",
+            "items": {
+                "$ref": "#/$defs/transaction",
+                "uniqueItems": true
+            }
+        },
+        "input_messages": {
+            "type": "array",
+            "description": "List of input messages",
+            "items": {
+                "$ref": "#/$defs/message",
+                "uniqueItems": true
+            }
+        },
+        "output_messages": {
+            "type": "array",
+            "description": "List of output messages",
+            "items": {
+                "$ref": "#/$defs/message",
+                "uniqueItems": true
+            }
+        }
+    },
+    "required": ["previous_header", "current_header", "account_blocks", "transactions", "input_messages", "output_messages"],
+    "additionalProperties": false
+}

@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.27)
 project(zkEVM-framework)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+include(GNUInstallDirs)
 
 option(BUILD_DOCS "Build documentation" FALSE)
 option(ENABLE_TESTS "Enable tests" FALSE)

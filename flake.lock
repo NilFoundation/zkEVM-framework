@@ -361,7 +361,8 @@
         "nil_evm_assigner": "nil_evm_assigner",
         "nil_zkllvm_blueprint": "nil_zkllvm_blueprint_2",
         "nixpkgs": "nixpkgs_8",
-        "sszpp": "sszpp"
+        "sszpp": "sszpp",
+        "valijson": "valijson"
       }
     },
     "sszpp": {
@@ -377,6 +378,22 @@
       "original": {
         "owner": "OffchainLabs",
         "repo": "sszpp",
+        "type": "github"
+      }
+    },
+    "valijson": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1713937661,
+        "narHash": "sha256-TOK7z6Ig+ivGOJaPPsc9qTJvvwiltLbQgQH9TmBrEOc=",
+        "owner": "tristanpenman",
+        "repo": "valijson",
+        "rev": "c1dde4e27090fb01c3ba5fdfc1f7890015bb256b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tristanpenman",
+        "repo": "valijson",
         "type": "github"
       }
     }

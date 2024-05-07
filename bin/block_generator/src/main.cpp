@@ -1,11 +1,12 @@
 #include <boost/json.hpp>
 #include <boost/json/src.hpp>
 #include <boost/program_options.hpp>
+#include <expected>
 #include <fstream>
 #include <iostream>
 #include <string>
 
-#include "block_generator.hpp"
+#include "zkevm_framework/block_generator/block_generator.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 
 int main(int argc, char* argv[]) {
@@ -62,10 +63,10 @@ int main(int argc, char* argv[]) {
         std::cerr << "Could not open the config file " << input_file_name << std::endl;
         return 1;
     }
-    std::optional<boost::json::value> parsed_json =
+    std::expected<boost::json::value, std::string> parsed_json =
         data_types::block_generator::parse_json(input_file);
     if (!parsed_json) {
-        std::cerr << "Parsing of config file failed: not a JSON format" << std::endl;
+        std::cerr << "Parsing of JSON config file failed: " << parsed_json.error() << std::endl;
         return 1;
     }
 
@@ -77,10 +78,10 @@ int main(int argc, char* argv[]) {
     }
 
     std::ofstream output_file(output_file_name);
-    std::expected<void, data_types::SerializationError> serialisation_result =
+    std::expected<void, data_types::SerializationError> serialization_result =
         block->serialize(output_file);
-    if (!serialisation_result) {
-        std::cerr << "Serialization error :" << serialisation_result.error().msg;
+    if (!serialization_result) {
+        std::cerr << serialization_result.error();
         return 1;
     }
     return 0;

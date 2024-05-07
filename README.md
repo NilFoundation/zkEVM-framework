@@ -33,6 +33,10 @@ Framework for test verification of state of cluster based on EVM
 * =nil; zkllvm-blueprint [Repository](https://github.com/NilFoundation/zkllvm-blueprint)
 * =nil; evm-assigner [Repository](https://github.com/NilFoundation/evm-assigner)
 
+### Block generator
+
+* Valijson [Repository](https://github.com/tristanpenman/valijson)
+
 ## Clone
 
 Using SSH:

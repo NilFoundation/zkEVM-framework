@@ -6,13 +6,13 @@
 #include <fstream>
 #include <initializer_list>
 
-#include "block_generator.hpp"
+#include "zkevm_framework/block_generator/block_generator.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
 
 namespace data_types::block_generator::test {
 
-    std::optional<boost::json::value> parse_test_file(const char *path) {
+    std::expected<boost::json::value, std::string> parse_test_file(const char *path) {
         std::ifstream input_file(path);
         if (!input_file.is_open()) {
             return {};
@@ -37,15 +37,14 @@ namespace data_types::block_generator::test {
 
     TEST(generator_test, smoke_test) {
         // Simply check if the format description was parsed without any errors
-        std::optional<boost::json::value> jvalue =
-            parse_test_file(INPUT_PATH "/inputs/scheme.json");
+        auto jvalue = parse_test_file(INPUT_PATH "/inputs/scheme.json");
         ASSERT_TRUE(jvalue);
         auto res = generate_block(*jvalue);
         ASSERT_TRUE(res);
     }
 
     TEST(generator_test, block_components) {
-        std::optional<boost::json::value> jvalue = parse_test_file(INPUT_PATH "/inputs/block.json");
+        auto jvalue = parse_test_file(INPUT_PATH "/inputs/block.json");
         ASSERT_TRUE(jvalue);
         auto res = generate_block(*jvalue);
         ASSERT_TRUE(res);
@@ -120,8 +119,7 @@ namespace data_types::block_generator::test {
     }
 
     TEST(generator_test, transaction_errors) {
-        std::optional<boost::json::value> correct_config =
-            parse_test_file(INPUT_PATH "/inputs/block.json");
+        auto correct_config = parse_test_file(INPUT_PATH "/inputs/block.json");
         ASSERT_TRUE(correct_config);
 
         auto first_transaction = [](boost::json::value &config) -> boost::json::object & {
@@ -144,7 +142,9 @@ namespace data_types::block_generator::test {
         first_transaction(bad_transaction_type_json)["type"] = "Incorrect type";
         result = generate_block(bad_transaction_type_json);
         EXPECT_FALSE(result);
-        EXPECT_EQ(result.error(), "Unexpected type of transaction: \"Incorrect type\"");
+        EXPECT_EQ(
+            result.error(),
+            "Failed to match against any enum values. Location: <root>[transactions][0][type]");
 
         auto bad_transaction_sender_json = *correct_config;
         first_transaction(bad_transaction_sender_json)["sender"] =
@@ -152,30 +152,39 @@ namespace data_types::block_generator::test {
         result = generate_block(bad_transaction_sender_json);
         EXPECT_FALSE(result);
         EXPECT_EQ(result.error(),
-                  "Wrong size of \"0x9bfa97dd7c7bb1c4\" value of 'sender', expected 20 bytes");
+                  "String should be no fewer than 42 characters in length. Location: "
+                  "<root>[transactions][0][sender]");
 
-        first_transaction(bad_transaction_sender_json)["sender"] = "non-hex string";
+        first_transaction(bad_transaction_sender_json)["sender"] =
+            "non-hex string with same length as address";
         result = generate_block(bad_transaction_sender_json);
         EXPECT_FALSE(result);
         EXPECT_EQ(result.error(),
-                  "Value \"non-hex string\" of 'sender' is not a hexadecimal string");
+                  "Failed to match regex specified by 'pattern' constraint. Location: "
+                  "<root>[transactions][0][sender]");
 
         first_transaction(bad_transaction_sender_json)["sender"] = 77;  // Unexpected type
         result = generate_block(bad_transaction_sender_json);
         EXPECT_FALSE(result);
-        EXPECT_EQ(result.error(), "Value '77' of 'sender' is not a string");
+        EXPECT_EQ(result.error(),
+                  "Value type not permitted by 'type' constraint. Location: "
+                  "<root>[transactions][0][sender]");
 
         auto extra_field_json = *correct_config;
         first_transaction(extra_field_json)["new_field"] = "some_value";
         result = generate_block(extra_field_json);
         EXPECT_FALSE(result);
-        EXPECT_EQ(result.error(), "Incorrect set of keys for data_types::Transaction");
+        EXPECT_EQ(
+            result.error(),
+            "Object contains a property that could not be validated using 'properties' or "
+            "'additionalProperties' constraints: 'new_field'. Location: <root>[transactions][0]");
 
         auto absent_field_json = *correct_config;
         first_transaction(absent_field_json)
             .erase(first_transaction(absent_field_json).find("sender"));
         result = generate_block(absent_field_json);
         EXPECT_FALSE(result);
-        EXPECT_EQ(result.error(), "Incorrect set of keys for data_types::Transaction");
+        EXPECT_EQ(result.error(),
+                  "Missing required property 'sender'. Location: <root>[transactions][0]");
     }
 }  // namespace data_types::block_generator::test
