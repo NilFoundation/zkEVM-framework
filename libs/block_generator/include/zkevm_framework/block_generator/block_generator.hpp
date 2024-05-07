@@ -4,7 +4,6 @@
 #include <boost/json/value.hpp>
 #include <expected>
 #include <istream>
-#include <optional>
 #include <string>
 
 #include "zkevm_framework/data_types/block.hpp"
@@ -15,7 +14,7 @@ namespace data_types::block_generator {
     std::expected<Block, std::string> generate_block(const boost::json::value &json_value);
 
     // Helper to parse config file and transform it to Boost json representation
-    std::optional<boost::json::value> parse_json(std::istream &stream);
+    std::expected<boost::json::value, std::string> parse_json(std::istream &stream);
 }  // namespace data_types::block_generator
 
 #endif  // ZKEMV_FRAMEWORK_LIBS_GENERATOR_GENERATOR_H_

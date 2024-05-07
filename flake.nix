@@ -22,6 +22,7 @@
     hashtree = { url = "github:prysmaticlabs/hashtree"; flake = false; };
     sszpp = { url = "github:OffchainLabs/sszpp"; flake = false; };
     evmc = { url = "github:ethereum/evmc"; flake = false; };
+    valijson = {url = "github:tristanpenman/valijson"; flake = false; };
   };
 
   outputs = { self, nixpkgs, nil_evm_assigner, nil_crypto3, nil_zkllvm_blueprint, ... } @ repos:
@@ -62,6 +63,11 @@
             repo = repos.evmc;
             inherit pkgs lib stdenv enable_debug;
           };
+
+          valijson = (pkgs.callPackage ./nix/valijson.nix) {
+            repo = repos.valijson;
+            inherit pkgs lib stdenv enable_debug;
+          };
         };
 
       makeReleaseBuild = { pkgs }:
@@ -80,6 +86,7 @@
             boost
             deps.sszpp
             deps.evmc
+            deps.valijson
             evm_assigner
             crypto3
             blueprint
@@ -107,6 +114,7 @@
             ninja
             boost
             deps.sszpp
+            deps.valijson
             evm_assigner
             crypto3
             blueprint
@@ -141,6 +149,7 @@
             doxygen
             clang_17
             deps.sszpp
+            deps.valijson
             evm_assigner
             crypto3
             blueprint
@@ -158,6 +167,10 @@
         assigner = {
               type = "app";
               program = "${self.packages.${pkgs.system}.default}/bin/assigner";
+        };
+        block_gen = {
+              type = "app";
+              program = "${self.packages.${pkgs.system}.default}/bin/block_gen";
         };
       });
       devShells = forAllSystems ({ pkgs }: { default = makeDevShell { inherit pkgs; }; });
