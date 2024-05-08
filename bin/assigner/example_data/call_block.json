@@ -1,0 +1,54 @@
+{
+    "previous_header" : {
+        "parent_hash" : 0,
+        "number" : 1,
+        "gas_limit" : 2,
+        "gas_used" : 3,
+        "coinbase" : "0x0000000000000000000000000000000000000005",
+        "prevrandao" : 4,
+        "chain_id" : 1,
+        "basefee" : 55,
+        "blob_basefee" : 55,
+        "timestamp" : 5
+    },
+    "current_header" : {
+        "parent_hash" : 0,
+        "number" : 1,
+        "gas_limit" : 2,
+        "gas_used" : 3,
+        "coinbase" : "0x0000000000000000000000000000000000000005",
+        "prevrandao" : 4,
+        "chain_id" : 1,
+        "basefee" : 55,
+        "blob_basefee" : 55,
+        "timestamp" : 5
+    },
+    "transactions" : [
+        {
+            "id" : 0,
+            "type" : "MessageCall",
+            "nonce" : 1,
+            "value" : 2,
+            "receive_address" : "0x0000000000000000000000000000000000000003",
+            "gas_price" : 3,
+            "gas" : 200000,
+            "data" : "0x60006000600060006000600161007df1",
+            "sender" : "0x0000000000000000000000000000000000000002"
+        }
+    ],
+    "account_blocks" : [
+        {
+            "account_address" : "0x0000000000000000000000000000000000000003",
+            "transactions" : [0]
+        }
+    ],
+    "input_messages" : [
+        {
+            "src" : "0x0000000000000000000000000000000000000002",
+            "dst" : "0x0000000000000000000000000000000000000003",
+            "value" : 0,
+            "transaction" : 0
+        }
+    ],
+    "output_messages" : []
+}

@@ -184,3 +184,11 @@ Incoming block has one transaction which call deployed contract
 ```bash
 nix run .#assigner [-L] [--override-input nil_evm_assigner /path_to/evm-assigner] -- -b bin/assigner/example_data/call_block.ssz -t assignments -e pallas [--log-level debug]
 ```
+
+### Block generation
+
+Test block could be generated from config file in JSON format
+
+```bash
+nix run .#block_gen [-L] -i bin/assigner/example_data/call_block.json -o call_block.ssz
+```
