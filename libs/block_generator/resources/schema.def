@@ -1,8 +1,0 @@
-#ifndef ZKEMV_FRAMEWORK_LIBS_BLOCK_GENERATOR_SCHEMA_DEF_
-#define ZKEMV_FRAMEWORK_LIBS_BLOCK_GENERATOR_SCHEMA_DEF_
-
-static const char schema_str[] =
-#include "schema.json.quoted"
-;
-
-#endif
