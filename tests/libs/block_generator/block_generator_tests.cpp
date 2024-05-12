@@ -9,6 +9,7 @@
 #include "zkevm_framework/block_generator/block_generator.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
+#include "zkevm_framework/json_helpers/json_helpers.hpp"
 
 namespace data_types::block_generator::test {
 
@@ -17,7 +18,7 @@ namespace data_types::block_generator::test {
         if (!input_file.is_open()) {
             return {};
         }
-        return parse_json(input_file);
+        return json_helpers::parse_json(input_file);
     }
 
     template<typename T>

@@ -1,6 +1,5 @@
 #include "zkevm_framework/block_generator/block_generator.hpp"
 
-#include <boost/algorithm/hex.hpp>
 #include <boost/json.hpp>
 #include <boost/json/array.hpp>
 #include <boost/json/serialize.hpp>
@@ -8,7 +7,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <expected>
-#include <iterator>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -16,14 +14,14 @@
 #include <unordered_set>
 #include <vector>
 
-#include "schema.def"
-#include "zkevm_framework/block_generator/json_validator.hpp"
+#include "block_schema.def"
 #include "zkevm_framework/data_types/account_block.hpp"
 #include "zkevm_framework/data_types/base.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/block_header.hpp"
 #include "zkevm_framework/data_types/message.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
+#include "zkevm_framework/json_helpers/json_helpers.hpp"
 
 namespace {
     std::unordered_map<size_t, data_types::Transaction> transaction_map;
@@ -36,23 +34,10 @@ namespace {
         }
     }
 
-    size_t get_number(const boost::json::value &json_value) {
-        if (json_value.is_int64()) {
-            return json_value.as_int64();
-        }
-        return json_value.as_uint64();
-    }
-
     // Transform hex string into Address or bytes
     template<typename OutputContainer>
     void get_bytes(const boost::json::value hex_value, OutputContainer &result) {
-        std::string hex_string = hex_value.as_string().c_str();
-        std::vector<uint8_t> bytes;
-        // Skip 0x prefix if exists
-        if (hex_string[0] == '0' && hex_string[1] == 'x') {
-            hex_string.erase(0, 2);
-        }
-        boost::algorithm::unhex(hex_string, std::back_inserter(bytes));
+        std::vector<uint8_t> bytes = json_helpers::get_bytes(hex_value);
         if constexpr (std::is_same_v<OutputContainer, data_types::Address>) {
             std::copy(bytes.begin(), bytes.end(), result.begin());
         } else {
@@ -63,6 +48,8 @@ namespace {
             }
         }
     }
+
+    using json_helpers::get_number;
 
     void handle_transaction(const std::string &key, const boost::json::value &json_value,
                             data_types::Transaction &transaction) {
@@ -186,14 +173,14 @@ namespace {
     std::optional<std::string> check_json_config(const boost::json::value &json_value) {
         // Parse schema and check if the config is valid
         std::stringstream schema_stream;
-        schema_stream << schema_str;
+        schema_stream << block_schema;
         std::expected<boost::json::value, std::string> schema =
-            data_types::block_generator::parse_json(schema_stream);
+            json_helpers::parse_json(schema_stream);
         if (!schema) {
             return "Parsing of json schema is failed: " + schema.error();
         }
 
-        auto validation_error = validate_json(schema.value(), json_value);
+        auto validation_error = json_helpers::validate_json(schema.value(), json_value);
         if (validation_error) {
             return validation_error;
         }
@@ -266,24 +253,5 @@ namespace data_types::block_generator {
         data_types::Block res;
         fill_block(json_value, res);
         return res;
-    }
-
-    std::expected<boost::json::value, std::string> parse_json(std::istream &stream) {
-        boost::json::stream_parser p;
-        boost::json::error_code ec;
-        while (!stream.eof()) {
-            char input_string[256];
-            stream.read(input_string, sizeof(input_string) - 1);
-            input_string[stream.gcount()] = '\0';
-            p.write(input_string, ec);
-            if (ec) {
-                return std::unexpected<std::string>(ec.message());
-            }
-        }
-        p.finish(ec);
-        if (ec) {
-            return std::unexpected<std::string>(ec.message());
-        }
-        return p.release();
     }
 }  // namespace data_types::block_generator

@@ -8,6 +8,7 @@
 
 #include "zkevm_framework/block_generator/block_generator.hpp"
 #include "zkevm_framework/data_types/block.hpp"
+#include "zkevm_framework/json_helpers/json_helpers.hpp"
 
 int main(int argc, char* argv[]) {
     boost::program_options::options_description options_desc("Block generator");
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::expected<boost::json::value, std::string> parsed_json =
-        data_types::block_generator::parse_json(input_file);
+        json_helpers::parse_json(input_file);
     if (!parsed_json) {
         std::cerr << "Parsing of JSON config file failed: " << parsed_json.error() << std::endl;
         return 1;

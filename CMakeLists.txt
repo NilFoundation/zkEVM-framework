@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.27)
 project(zkEVM-framework)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+# Add json helpers to module path
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/libs/json_helpers/cmake ${CMAKE_MODULE_PATH})
 include(GNUInstallDirs)
 
 option(BUILD_DOCS "Build documentation" FALSE)

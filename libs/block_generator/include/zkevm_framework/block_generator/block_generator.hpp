@@ -12,9 +12,6 @@ namespace data_types::block_generator {
 
     // Construct Block from JSON config file
     std::expected<Block, std::string> generate_block(const boost::json::value &json_value);
-
-    // Helper to parse config file and transform it to Boost json representation
-    std::expected<boost::json::value, std::string> parse_json(std::istream &stream);
 }  // namespace data_types::block_generator
 
 #endif  // ZKEMV_FRAMEWORK_LIBS_GENERATOR_GENERATOR_H_
