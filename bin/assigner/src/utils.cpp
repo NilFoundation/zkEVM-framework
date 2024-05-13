@@ -1,6 +1,10 @@
 #include "utils.h"
 
+#include <evmc/evmc.h>
+
+#include <cstdint>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 
@@ -23,29 +27,23 @@ evmc_address to_evmc_address(const data_types::Address& v) {
     return res;
 }
 
-std::string to_str(const evmc_address& v) {
+static std::string byte_array_to_str(const uint8_t* data, size_t size) {
     std::stringstream os;
-    os << std::hex << "{ " << v.bytes[0] << " " << v.bytes[1] << " " << v.bytes[2] << " "
-       << v.bytes[3] << " " << v.bytes[4] << " " << v.bytes[5] << " " << v.bytes[6] << " "
-       << v.bytes[7] << " " << v.bytes[8] << " " << v.bytes[9] << " " << v.bytes[10] << " "
-       << v.bytes[11] << " " << v.bytes[12] << " " << v.bytes[13] << " " << v.bytes[14] << " "
-       << v.bytes[14] << " " << v.bytes[16] << " " << v.bytes[15] << " " << v.bytes[18] << " "
-       << v.bytes[19] << " }";
+    os << std::hex << "0x";
+    for (int i = 0; i < size; ++i) {
+        os << std::setw(2) << std::setfill('0') << (int)data[i];
+    }
     return os.str();
 }
 
-std::string to_str(const data_types::Address& v) {
-    std::stringstream os;
-    os << std::hex << "{ " << static_cast<int>(v[0]) << " " << static_cast<int>(v[1]) << " "
-       << static_cast<int>(v[2]) << " " << static_cast<int>(v[3]) << " " << static_cast<int>(v[4])
-       << " " << static_cast<int>(v[5]) << " " << static_cast<int>(v[6]) << " "
-       << static_cast<int>(v[7]) << " " << static_cast<int>(v[8]) << " " << static_cast<int>(v[9])
-       << " " << static_cast<int>(v[10]) << " " << static_cast<int>(v[11]) << " "
-       << static_cast<int>(v[12]) << " " << static_cast<int>(v[13]) << " "
-       << static_cast<int>(v[14]) << " " << static_cast<int>(v[15]) << " "
-       << static_cast<int>(v[16]) << " " << static_cast<int>(v[17]) << " "
-       << static_cast<int>(v[18]) << " " << static_cast<int>(v[19]) << " }";
-    return os.str();
+std::string to_str(const evmc_address& v) { return byte_array_to_str(v.bytes, sizeof(v.bytes)); }
+
+std::string to_str(const data_types::Address& v) { return byte_array_to_str(v.data(), v.size()); }
+
+std::string to_str(const evmc_bytes32& v) { return byte_array_to_str(v.bytes, sizeof(v.bytes)); }
+
+std::string to_str(const std::vector<uint8_t>& code) {
+    return byte_array_to_str(code.data(), code.size());
 }
 
 std::string to_str(const data_types::Transaction::Type& type) {

@@ -28,6 +28,7 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 
+#include "state_parser.hpp"
 #include "utils.h"
 #include "vm_host.h"
 #include "zkevm_framework/data_types/account.hpp"
@@ -36,6 +37,7 @@
 
 template<typename BlueprintFieldType>
 int curve_dependent_main(const std::string& input_block_file_name,
+                         const std::string& account_storage_config_name,
                          const std::string& input_assignment_table_file_name,
                          const std::string& assignment_table_file_name,
                          boost::log::trivial::severity_level log_level,
@@ -130,18 +132,44 @@ int curve_dependent_main(const std::string& input_block_file_name,
     const struct evmc_host_interface* host_interface = &evmc::Host::get_interface();
 
     // init current account storage
-    evmc::accounts account_storage = {{}};
-    const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
-    // HARDCODE simple deployed contract which does simple a + b
-    // TODO read storage from file
-    evmc::account acc;
-    acc.code = {evmone::OP_PUSH1, 4, evmone::OP_PUSH1, 8, evmone::OP_MUL};
-    acc.balance = to_uint256be(0);
-    evmc_address acc_addr = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
-    account_storage.insert(std::pair<evmc::address, evmc::account>(acc_addr, acc));
+    evmc::accounts account_storage;
+    if (!account_storage_config_name.empty()) {
+        std::ifstream asc_stream(account_storage_config_name);
+        if (!asc_stream.is_open()) {
+            std::cerr << "Could not open the account storage config: '"
+                      << account_storage_config_name << "'" << std::endl;
+            return -1;
+        }
+        auto init_err = init_account_storage(account_storage, asc_stream);
+        if (init_err) {
+            std::cerr << init_err.value() << std::endl;
+            return -1;
+        }
+
+        if (log_level <= boost::log::trivial::debug) {
+            BOOST_LOG_TRIVIAL(debug)
+                << "Account storage initialized with " << account_storage.size() << " accounts: \n";
+            for (const auto& [addr, acc] : account_storage) {
+                BOOST_LOG_TRIVIAL(debug) << "\tAddress: " << to_str(addr) << '\n'
+                                         << "\tBalance: " << to_str(acc.balance) << '\n';
+                if (!acc.code.empty()) {
+                    BOOST_LOG_TRIVIAL(debug) << "\tCode: " << to_str(acc.code);
+                }
+                if (!acc.storage.empty()) {
+                    BOOST_LOG_TRIVIAL(debug) << "\tStorage:\n";
+                    for (const auto& [key, value] : acc.storage) {
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "[ " << to_str(key) << " ] = " << to_str(value) << "\n";
+                    }
+                }
+                BOOST_LOG_TRIVIAL(debug) << std::endl;
+            }
+        }
+    }
 
     VMHost host(tx_context, &assigner_instance, account_storage);
     struct evmc_host_context* ctx = host.to_context();
+    const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
 
     for (const auto& input_msg : input_block.m_inputMsgs) {
         const evmc_address origin_addr = to_evmc_address(input_msg.m_info.m_src);
@@ -212,7 +240,7 @@ int curve_dependent_main(const std::string& input_block_file_name,
                                    .input_data = input,
                                    .input_size = sizeof(input),
                                    .value = value,
-                                   .create2_salt = 0,
+                                   .create2_salt = {0},
                                    .code_address = origin_addr};
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate transaction " << transaction.m_id << "\n"
@@ -251,6 +279,7 @@ int main(int argc, char* argv[]) {
             ("assignment-tables,t", boost::program_options::value<std::string>(), "Assignment table output files")
             ("input-assignment-tables,i", boost::program_options::value<std::string>(), "Assignment table input files")
             ("input-block,b", boost::program_options::value<std::string>(), "Block input files")
+            ("account-storage,s", boost::program_options::value<std::string>(), "Account storage config file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)")
             ("column-sizes", boost::program_options::value<std::vector<std::size_t>>()->multitoken(), "Column sizes, 6 values: WitnessColumns, PublicInputColumns, ComponentConstantColumns,        LookupConstantColumns, ComponentSelectorColumns, LookupSelectorColumns")
@@ -288,6 +317,7 @@ int main(int argc, char* argv[]) {
     std::string assignment_table_file_name;
     std::string input_assignment_table_file_name;
     std::string input_block_file_name;
+    std::string account_storage_config_name;
     std::string elliptic_curve;
     std::string log_level;
 
@@ -313,6 +343,10 @@ int main(int argc, char* argv[]) {
                   << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
+    }
+
+    if (vm.count("account-storage")) {
+        account_storage_config_name = vm["account-storage"].as<std::string>();
     }
 
     if (vm.count("elliptic-curve-type")) {
@@ -375,7 +409,8 @@ int main(int argc, char* argv[]) {
         case 0: {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::curves::pallas::base_field_type>(
-                input_block_file_name, input_assignment_table_file_name, assignment_table_file_name,
+                input_block_file_name, account_storage_config_name,
+                input_assignment_table_file_name, assignment_table_file_name,
                 log_options[log_level], column_sizes);
             break;
         }

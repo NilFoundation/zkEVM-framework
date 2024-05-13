@@ -180,9 +180,10 @@ To see HTML documentation, open `${BUILD_DIR}/html`.
 
 Account storage contains one account with deployed contract.
 Incoming block has one transaction which call deployed contract
+Config file with initial state of account storage could be passed with `-s`
 
 ```bash
-nix run .#assigner [-L] [--override-input nil_evm_assigner /path_to/evm-assigner] -- -b bin/assigner/example_data/call_block.ssz -t assignments -e pallas [--log-level debug]
+nix run .#assigner [-L] [--override-input nil_evm_assigner /path_to/evm-assigner] -- -b bin/assigner/example_data/call_block.ssz -t assignments -e pallas [-s bin/assigner/example_data/state.json] [--log-level debug]
 ```
 
 ### Block generation
