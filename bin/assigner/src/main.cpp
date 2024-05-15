@@ -13,6 +13,8 @@
 #define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
+#include <evmone/evmone.h>
+
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
@@ -38,34 +40,25 @@
 template<typename BlueprintFieldType>
 int curve_dependent_main(const std::string& input_block_file_name,
                          const std::string& account_storage_config_name,
-                         const std::string& input_assignment_table_file_name,
                          const std::string& assignment_table_file_name,
                          boost::log::trivial::severity_level log_level,
-                         const std::array<std::size_t, 6>& column_sizes) {
+                         std::vector<std::array<std::size_t, 4>>& column_sizes) {
     using ArithmetizationType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
 
-    // set arithmetization params
-    const std::size_t ComponentConstantColumns = column_sizes[2];
-    const std::size_t LookupConstantColumns = column_sizes[3];
-    const std::size_t ComponentSelectorColumns = column_sizes[4];
-    const std::size_t LookupSelectorColumns = column_sizes[5];
-
-    const std::size_t WitnessColumns = column_sizes[0];
-    const std::size_t PublicInputColumns = column_sizes[1];
-
-    const std::size_t ConstantColumns = ComponentConstantColumns + LookupConstantColumns;
-    const std::size_t SelectorColumns = ComponentSelectorColumns + LookupSelectorColumns;
-
-    nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType> desc(
-        WitnessColumns, PublicInputColumns, ConstantColumns, SelectorColumns);
-
-    // initialize assignment tables from input_assignment_table_file_name
+    // initialize assignment tables
     std::vector<nil::blueprint::assignment<ArithmetizationType>> assignments;
+    for (const auto& table_column_sizes : column_sizes) {
+        nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType> desc(
+            table_column_sizes[0], table_column_sizes[1], table_column_sizes[2],
+            table_column_sizes[3]);
+        assignments.emplace_back(desc);
+    }
+
     // TODO somehow fill by initial values (public_input, ... )
 
     // create assigner instance
-    nil::blueprint::assigner<BlueprintFieldType> assigner_instance(desc, assignments);
+    nil::blueprint::assigner<BlueprintFieldType> assigner_instance(assignments);
 
     std::ifstream input_block_file(input_block_file_name.c_str(),
                                    std::ios_base::binary | std::ios_base::in);
@@ -167,7 +160,7 @@ int curve_dependent_main(const std::string& input_block_file_name,
         }
     }
 
-    VMHost host(tx_context, &assigner_instance, account_storage);
+    VMHost host(tx_context, account_storage, assigner_instance.get_handler());
     struct evmc_host_context* ctx = host.to_context();
     const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
 
@@ -277,13 +270,10 @@ int main(int argc, char* argv[]) {
     options_desc.add_options()("help,h", "Display help message")
             ("version,v", "Display version")
             ("assignment-tables,t", boost::program_options::value<std::string>(), "Assignment table output files")
-            ("input-assignment-tables,i", boost::program_options::value<std::string>(), "Assignment table input files")
             ("input-block,b", boost::program_options::value<std::string>(), "Block input files")
             ("account-storage,s", boost::program_options::value<std::string>(), "Account storage config file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
-            ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)")
-            ("column-sizes", boost::program_options::value<std::vector<std::size_t>>()->multitoken(), "Column sizes, 6 values: WitnessColumns, PublicInputColumns, ComponentConstantColumns,        LookupConstantColumns, ComponentSelectorColumns, LookupSelectorColumns")
-            ;
+            ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)");
     // clang-format on
 
     boost::program_options::variables_map vm;
@@ -328,12 +318,6 @@ int main(int argc, char* argv[]) {
                   << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
-    }
-
-    if (vm.count("input-assignment-tables")) {
-        input_assignment_table_file_name = vm["input-assignment-tables"].as<std::string>();
-    } else {
-        input_assignment_table_file_name = "";
     }
 
     if (vm.count("input-block")) {
@@ -386,31 +370,24 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    const std::size_t column_sizes_size = 6;
-    std::array<std::size_t, column_sizes_size> column_sizes = {
-        15,  // witness
-        1,   // public_input
-        5,   // component constants
-        30,  // lookup constants
-        30,  // component selector
-        5    // lookup selector
-    };
-
-    if (vm.count("column-sizes")) {
-        std::vector<std::size_t> column_sizes_vector =
-            vm["column-sizes"].as<std::vector<std::size_t>>();
-        assert(column_sizes_vector.size() == column_sizes_size);
-        for (std::size_t i = 0; i < column_sizes_size; i++) {
-            column_sizes[i] = column_sizes_vector[i];
-        }
-    }
+    std::vector<std::array<std::size_t, 4>> column_sizes = {{
+                                                                15,  // witness
+                                                                1,   // public_input
+                                                                5,   // constants
+                                                                30   // selectors
+                                                            },
+                                                            {
+                                                                15,  // witness
+                                                                1,   // public_input
+                                                                5,   // constants
+                                                                30   // selectors
+                                                            }};
 
     switch (curve_options[elliptic_curve]) {
         case 0: {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::curves::pallas::base_field_type>(
-                input_block_file_name, account_storage_config_name,
-                input_assignment_table_file_name, assignment_table_file_name,
+                input_block_file_name, account_storage_config_name, assignment_table_file_name,
                 log_options[log_level], column_sizes);
             break;
         }
@@ -423,7 +400,10 @@ int main(int argc, char* argv[]) {
             break;
         }
         case 3: {
-            std::cerr << "bls12381 curve based circuits are not supported yet\n";
+            return curve_dependent_main<
+                typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
+                input_block_file_name, account_storage_config_name, assignment_table_file_name,
+                log_options[log_level], column_sizes);
             break;
         }
     };

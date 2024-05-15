@@ -169,11 +169,11 @@
         "nixpkgs": "nixpkgs_5"
       },
       "locked": {
-        "lastModified": 1714375110,
-        "narHash": "sha256-b2YPlAceiUCM/Fmx//+Rcmj9ZsDBY3M93Xg58SrXSf4=",
+        "lastModified": 1716197021,
+        "narHash": "sha256-LVp+SvCqwcJXPKbmqRUG+w8okqjd1FiRCoSOwiOWmT8=",
         "owner": "NilFoundation",
         "repo": "evm-assigner",
-        "rev": "cc7b4d8725ed36fbac78affba9d95d1ab243b50f",
+        "rev": "8ae858314b7f595824655a7342eac260d54e0b16",
         "type": "github"
       },
       "original": {

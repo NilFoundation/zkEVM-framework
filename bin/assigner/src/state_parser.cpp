@@ -5,6 +5,7 @@
 #include <boost/endian/conversion.hpp>
 #include <cstring>
 #include <evmc/evmc.hpp>
+#include <iostream>
 
 #include "state_schema.def"
 #include "vm_host.h"
