@@ -42,7 +42,7 @@ Framework for test verification of state of cluster based on EVM
 Using SSH:
 
 ```plain
-git clone git@github.com:NilFoundation/zkEVM-framework.git
+git clone https://github.com/NilFoundation/zkEVM-framework.git
 ```
 
 Or if you are using GitHub PAT to authenticate using HTTPS:
