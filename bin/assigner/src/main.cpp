@@ -33,6 +33,7 @@
 #include "state_parser.hpp"
 #include "utils.h"
 #include "vm_host.h"
+#include "write_assignments.hpp"
 #include "zkevm_framework/data_types/account.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
@@ -258,7 +259,13 @@ int curve_dependent_main(const std::string& input_block_file_name,
 
     BOOST_LOG_TRIVIAL(debug) << "print assignment tables " << assignments.size() << "\n";
 
-    // TODO: write assignment tables to assignment_table_file_name
+    using Endianness = nil::marshalling::option::big_endian;
+
+    bool err = write_binary_assignments<Endianness, ArithmetizationType, BlueprintFieldType>(
+        assignments, assignment_table_file_name);
+    if (err) {
+        return 1;
+    }
 
     return 0;
 }
