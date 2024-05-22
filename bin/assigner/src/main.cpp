@@ -2,8 +2,11 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <expected>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <optional>
 #include <string>
 
 #ifndef BOOST_FILESYSTEM_NO_DEPRECATED
@@ -30,6 +33,7 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 
+#include "output_artifacts.hpp"
 #include "state_parser.hpp"
 #include "utils.h"
 #include "vm_host.h"
@@ -42,6 +46,7 @@ template<typename BlueprintFieldType>
 int curve_dependent_main(const std::string& input_block_file_name,
                          const std::string& account_storage_config_name,
                          const std::string& assignment_table_file_name,
+                         const std::optional<OutputArtifacts>& artifacts,
                          boost::log::trivial::severity_level log_level,
                          std::vector<std::array<std::size_t, 4>>& column_sizes) {
     using ArithmetizationType =
@@ -267,6 +272,14 @@ int curve_dependent_main(const std::string& input_block_file_name,
         return 1;
     }
 
+    if (artifacts.has_value()) {
+        bool err = write_output_artifacts<Endianness, ArithmetizationType, BlueprintFieldType>(
+            assignments, artifacts.value());
+        if (err) {
+            return 1;
+        }
+    }
+
     return 0;
 }
 
@@ -277,6 +290,20 @@ int main(int argc, char* argv[]) {
     options_desc.add_options()("help,h", "Display help message")
             ("version,v", "Display version")
             ("assignment-tables,t", boost::program_options::value<std::string>(), "Assignment table output files")
+            ("output-text", boost::program_options::value<std::string>(), "Output assignment table in readable format. "
+                                                                          "Filename or `-` for stdout. "
+                                                                          "Using this enables options --tables, --rows, --columns")
+            ("tables", boost::program_options::value<std::string>(), "Assignment table indices to output. "
+                                                                     "Format is --tables N|N-|-N|N-M(,N|N-|-N|N-M)*. "
+                                                                     "If not specified, outputs all generated tables")
+            ("rows", boost::program_options::value<std::string>(), "Range of rows of the table to output. "
+                                                                   "Format is --rows N|N-|-N|N-M(,N|N-|-N|N-M)*. "
+                                                                   "If not specified, outputs all rows")
+            ("columns", boost::program_options::value<std::vector<std::string>>(), "Range of columns of the table to output. "
+                                                                                   "Format is --columns <name>N|N-|-N|N-M(,N|N-|-N|N-M)*, where <name> is public_input|witness|constant|selector."
+                                                                                   "If not specified, outputs all columns. "
+                                                                                   "May be provided multiple times with different column types")
+            ("input-assignment-tables,i", boost::program_options::value<std::string>(), "Assignment table input files")
             ("input-block,b", boost::program_options::value<std::string>(), "Block input files")
             ("account-storage,s", boost::program_options::value<std::string>(), "Account storage config file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
@@ -325,6 +352,23 @@ int main(int argc, char* argv[]) {
                   << std::endl;
         std::cout << options_desc << std::endl;
         return 1;
+    }
+
+    std::optional<OutputArtifacts> artifacts = std::nullopt;
+    if (vm.count("output-text")) {
+        auto maybe_artifacts = OutputArtifacts::from_program_options(vm);
+        if (!maybe_artifacts.has_value()) {
+            std::cerr << maybe_artifacts.error() << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+        artifacts = maybe_artifacts.value();
+    }
+
+    if (vm.count("input-assignment-tables")) {
+        input_assignment_table_file_name = vm["input-assignment-tables"].as<std::string>();
+    } else {
+        input_assignment_table_file_name = "";
     }
 
     if (vm.count("input-block")) {
@@ -395,7 +439,7 @@ int main(int argc, char* argv[]) {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::curves::pallas::base_field_type>(
                 input_block_file_name, account_storage_config_name, assignment_table_file_name,
-                log_options[log_level], column_sizes);
+                artifacts, log_options[log_level], column_sizes);
             break;
         }
         case 1: {
@@ -410,7 +454,7 @@ int main(int argc, char* argv[]) {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
                 input_block_file_name, account_storage_config_name, assignment_table_file_name,
-                log_options[log_level], column_sizes);
+                artifacts, log_options[log_level], column_sizes);
             break;
         }
     };

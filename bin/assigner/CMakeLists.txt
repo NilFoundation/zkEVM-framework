@@ -18,6 +18,13 @@ target_include_directories(${TARGET_NAME}
     ${CMAKE_CURRENT_BINARY_DIR}/include)
 add_dependencies(${TARGET_NAME} state_schema_include)
 
-target_link_libraries(${TARGET_NAME} PRIVATE evmone evmone_assigner zkEVMDataTypes zkEVMJsonHelpers ${Boost_LIBRARIES})
+target_link_libraries(${TARGET_NAME}
+    PRIVATE
+    evmone
+    evmone_assigner
+    zkEVMDataTypes
+    zkEVMJsonHelpers
+    zkEVMOutputArtifacts
+    ${Boost_LIBRARIES})
 
 install(TARGETS ${TARGET_NAME})
