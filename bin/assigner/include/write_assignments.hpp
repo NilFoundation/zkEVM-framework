@@ -19,6 +19,7 @@
 #include "nil/crypto3/marshalling/algebra/types/field_element.hpp"
 #include "nil/crypto3/zk/snark/arithmetization/plonk/assignment.hpp"
 #include "nil/marshalling/types/integral.hpp"
+#include "output_artifacts.hpp"
 
 /**
  * @brief Write size_t serialized as nil::marshalling::types::integral into output stream.
@@ -176,6 +177,124 @@ int write_binary_assignments(
                                                                                      fout);
         fout.close();
     }
+    return 0;
+}
+
+/**
+ * @brief Write assignments into output artifacts according to thier description.
+ */
+template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
+int write_output_artifacts(
+    const std::vector<nil::blueprint::assignment<ArithmetizationType>>& assignments,
+    const OutputArtifacts& artifacts) {
+    BOOST_LOG_TRIVIAL(debug) << "\n";
+    BOOST_LOG_TRIVIAL(debug) << "writing output artifacts to " << artifacts.basename;
+    BOOST_LOG_TRIVIAL(debug) << "tables to print: " << artifacts.tables.to_string();
+    BOOST_LOG_TRIVIAL(debug) << "rows to print: " << artifacts.rows.to_string();
+    BOOST_LOG_TRIVIAL(debug) << "witness columns to print: "
+                             << artifacts.witness_columns.to_string();
+    BOOST_LOG_TRIVIAL(debug) << "public input columns to print: "
+                             << artifacts.public_input_columns.to_string();
+    BOOST_LOG_TRIVIAL(debug) << "constant columns to print: "
+                             << artifacts.constant_columns.to_string();
+    BOOST_LOG_TRIVIAL(debug) << "selector columns to print: "
+                             << artifacts.selector_columns.to_string();
+    BOOST_LOG_TRIVIAL(debug) << "\n";
+
+    if (assignments.empty()) {
+        return 0;
+    }
+
+    auto maybe_tables = artifacts.tables.concrete_ranges(assignments.size() - 1);
+    if (!maybe_tables.has_value()) {
+        std::cerr << "Tables: " << maybe_tables.error() << std::endl;
+        return 1;
+    }
+    Ranges::ConcreteRanges tables = maybe_tables.value();
+
+    for (const auto& [lower, upper] : tables) {
+        for (std::size_t i = lower; i <= upper; ++i) {
+            auto assignment = assignments[i];
+
+            Ranges::ConcreteRanges witnesses = {};
+            if (!artifacts.witness_columns.empty()) {
+                auto maybe_witnesses = artifacts.witness_columns.concrete_ranges(
+                    (int)assignment.witnesses_amount() - 1);
+                if (!maybe_witnesses.has_value()) {
+                    std::cerr << "Table " << i << ": Witnesses: " << maybe_witnesses.error()
+                              << std::endl;
+                    return 1;
+                }
+                witnesses = maybe_witnesses.value();
+            }
+
+            Ranges::ConcreteRanges public_inputs = {};
+            if (!artifacts.public_input_columns.empty()) {
+                auto maybe_public_inputs = artifacts.public_input_columns.concrete_ranges(
+                    (int)assignment.public_inputs_amount() - 1);
+                if (!maybe_public_inputs.has_value()) {
+                    std::cerr << "Table " << i << ": Public inputs: " << maybe_public_inputs.error()
+                              << std::endl;
+                    return 1;
+                }
+                public_inputs = maybe_public_inputs.value();
+            }
+
+            Ranges::ConcreteRanges constants = {};
+            if (!artifacts.constant_columns.empty()) {
+                auto maybe_constants = artifacts.constant_columns.concrete_ranges(
+                    (int)assignment.constants_amount() - 1);
+                if (!maybe_constants.has_value()) {
+                    std::cerr << "Table " << i << ": Constants: " << maybe_constants.error()
+                              << std::endl;
+                    return 1;
+                }
+                constants = maybe_constants.value();
+            }
+
+            Ranges::ConcreteRanges selectors = {};
+            if (!artifacts.selector_columns.empty()) {
+                auto maybe_selectors = artifacts.selector_columns.concrete_ranges(
+                    (int)assignment.selectors_amount() - 1);
+                if (!maybe_selectors.has_value()) {
+                    std::cerr << "Table " << i << ": Selectors: " << maybe_selectors.error()
+                              << std::endl;
+                    return 1;
+                }
+                selectors = maybe_selectors.value();
+            }
+
+            Ranges::ConcreteRanges rows = {};
+            if (!artifacts.rows.empty()) {
+                auto maybe_rows = artifacts.rows.concrete_ranges((int)assignment.max_size() - 1);
+                if (!maybe_rows.has_value()) {
+                    std::cerr << "Table " << i << ": Rows: " << maybe_rows.error() << std::endl;
+                    return 1;
+                }
+                rows = maybe_rows.value();
+            }
+
+            if (artifacts.to_stdout()) {
+                BOOST_LOG_TRIVIAL(debug) << "writing table " << i << " to stdout";
+
+                assignment.export_table(std::cout, witnesses, public_inputs, constants, selectors,
+                                        rows);
+            } else {
+                std::string filename = artifacts.basename + "." + std::to_string(i);
+                BOOST_LOG_TRIVIAL(debug) << "writing table " << i << " into file " << filename;
+
+                std::ofstream fout(filename, std::ios_base::binary | std::ios_base::out);
+                if (!fout.is_open()) {
+                    std::cerr << "Cannot open " << filename << std::endl;
+                    return 1;
+                }
+                assignment.export_table(fout, witnesses, public_inputs, constants, selectors, rows);
+                fout.close();
+            }
+            BOOST_LOG_TRIVIAL(debug) << "\n";
+        }
+    }
+
     return 0;
 }
 
