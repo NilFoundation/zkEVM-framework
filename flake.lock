@@ -188,11 +188,11 @@
         "nixpkgs": "nixpkgs_4"
       },
       "locked": {
-        "lastModified": 1713444891,
-        "narHash": "sha256-eTnjr51YYlU7PeFH6xJIpytaOne5NFHckLMj3RaxOlI=",
+        "lastModified": 1716471481,
+        "narHash": "sha256-08+2vMX/+uD/Sk4mMo5/86P6GSAeNqxvitWcXxwXP8s=",
         "ref": "refs/heads/master",
-        "rev": "7cf2850fc86fa93ed89d2358fa38f339a51e21b7",
-        "revCount": 1204,
+        "rev": "54a897574f3e2da1d049c83e52fa97d8ae935595",
+        "revCount": 1211,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/NilFoundation/zkllvm-blueprint"
@@ -209,11 +209,11 @@
         "nixpkgs": "nixpkgs_7"
       },
       "locked": {
-        "lastModified": 1713444891,
-        "narHash": "sha256-eTnjr51YYlU7PeFH6xJIpytaOne5NFHckLMj3RaxOlI=",
+        "lastModified": 1716471481,
+        "narHash": "sha256-08+2vMX/+uD/Sk4mMo5/86P6GSAeNqxvitWcXxwXP8s=",
         "ref": "refs/heads/master",
-        "rev": "7cf2850fc86fa93ed89d2358fa38f339a51e21b7",
-        "revCount": 1204,
+        "rev": "54a897574f3e2da1d049c83e52fa97d8ae935595",
+        "revCount": 1211,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/NilFoundation/zkllvm-blueprint"
