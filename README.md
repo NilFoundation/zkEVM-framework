@@ -193,3 +193,25 @@ Test block could be generated from config file in JSON format
 ```bash
 nix run .#block_gen [-L] -i bin/assigner/example_data/call_block.json -o call_block.ssz
 ```
+
+### Human-readable assignments
+
+While generating assignment table, you can partially dump it into text form.
+This is enabled by `--output-text` option, which specifies output filename or stdout.
+
+```bash
+assigner --output-text out.txt
+```
+
+Using this option enables other options for tables, columns and rows selection:
+
+```bash
+assigner --output-text - \
+    --tables 0 \
+    --rows 0- \
+    --columns witness0-1,3 \
+    --columns public_input-1
+```
+
+This extracts all raws of w_0, w_1, w_3 and firts public input columns from table with index 0 and prints it to stdout.
+The syntax for ranges specification is: `Range(,Range)*` where `Range = N|N-|-N|N-N` where `N` is a number.
