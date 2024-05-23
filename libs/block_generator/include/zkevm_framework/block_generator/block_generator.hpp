@@ -11,7 +11,8 @@
 namespace data_types::block_generator {
 
     // Construct Block from JSON config file
-    std::expected<Block, std::string> generate_block(const boost::json::value &json_value);
+    std::expected<Block, std::string> generate_block(const boost::json::value& json_value);
+
 }  // namespace data_types::block_generator
 
 #endif  // ZKEMV_FRAMEWORK_LIBS_GENERATOR_GENERATOR_H_

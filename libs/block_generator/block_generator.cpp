@@ -6,7 +6,7 @@
 #include <boost/json/stream_parser.hpp>
 #include <cstddef>
 #include <cstdint>
-#include <expected>
+#include <fstream>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -172,6 +172,9 @@ namespace {
 
     std::optional<std::string> check_json_config(const boost::json::value &json_value) {
         // Parse schema and check if the config is valid
+        if (!json_value.is_object()) {
+            return "Json value is empty";
+        }
         std::stringstream schema_stream;
         schema_stream << block_schema;
         std::expected<boost::json::value, std::string> schema =

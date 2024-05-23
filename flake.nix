@@ -87,6 +87,13 @@
       defaultDevTools = [
         pkgs.doxygen
         pkgs.clang_17 # clang-format and clang-tidy
+        pkgs.go_1_22
+        pkgs.gotools
+        pkgs.go-tools
+        pkgs.gopls
+        pkgs.golangci-lint
+        pkgs.gofumpt
+        pkgs.gci
       ];
 
       releaseBuild = stdenv.mkDerivation {
