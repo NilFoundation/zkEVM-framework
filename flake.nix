@@ -2,7 +2,7 @@
   description = "Nix flake for zkEVM framework";
 
   inputs = {
-    nixpkgs = { url = "github:NixOS/nixpkgs/nixos-23.11"; };
+    nixpkgs = { url = "github:NixOS/nixpkgs"; };
     nil_evm_assigner = {
       type = "github";
       owner = "NilFoundation";
