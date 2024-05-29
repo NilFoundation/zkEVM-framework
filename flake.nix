@@ -7,16 +7,28 @@
       type = "github";
       owner = "NilFoundation";
       repo = "evm-assigner";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nil_crypto3.follows = "nil_crypto3";
+        nil_zkllvm_blueprint.follows = "nil_zkllvm_blueprint";
+      };
     };
     nil_crypto3 = {
       url = "https://github.com/NilFoundation/crypto3";
       type = "git";
       submodules = true;
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
     };
     nil_zkllvm_blueprint = {
       url = "https://github.com/NilFoundation/zkllvm-blueprint";
       type = "git";
       submodules = true;
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nil_crypto3.follows = "nil_crypto3";
+      };
     };
     intx = { url = "github:chfast/intx"; flake = false; };
     hashtree = { url = "github:prysmaticlabs/hashtree"; flake = false; };
