@@ -50,7 +50,7 @@
         "type": "github"
       }
     },
-    "nil_crypto3": {
+    "nil-crypto3": {
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
@@ -72,15 +72,15 @@
         "url": "https://github.com/NilFoundation/crypto3"
       }
     },
-    "nil_evm_assigner": {
+    "nil-evm-assigner": {
       "inputs": {
         "evmc": "evmc",
         "intx": "intx",
         "nil_crypto3": [
-          "nil_crypto3"
+          "nil-crypto3"
         ],
         "nil_zkllvm_blueprint": [
-          "nil_zkllvm_blueprint"
+          "nil-zkllvm-blueprint"
         ],
         "nixpkgs": [
           "nixpkgs"
@@ -100,10 +100,10 @@
         "type": "github"
       }
     },
-    "nil_zkllvm_blueprint": {
+    "nil-zkllvm-blueprint": {
       "inputs": {
         "nil_crypto3": [
-          "nil_crypto3"
+          "nil-crypto3"
         ],
         "nixpkgs": [
           "nixpkgs"
@@ -127,7 +127,9 @@
     },
     "nix-3rdparty": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "flake-utils": [
+          "flake-utils"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -163,9 +165,10 @@
     },
     "root": {
       "inputs": {
-        "nil_crypto3": "nil_crypto3",
-        "nil_evm_assigner": "nil_evm_assigner",
-        "nil_zkllvm_blueprint": "nil_zkllvm_blueprint",
+        "flake-utils": "flake-utils",
+        "nil-crypto3": "nil-crypto3",
+        "nil-evm-assigner": "nil-evm-assigner",
+        "nil-zkllvm-blueprint": "nil-zkllvm-blueprint",
         "nix-3rdparty": "nix-3rdparty",
         "nixpkgs": "nixpkgs"
       }
