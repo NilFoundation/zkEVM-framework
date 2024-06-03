@@ -148,7 +148,7 @@
         '';
       };
     in
-    {
+    rec {
       packages = rec {
         default = release;
         release = releaseBuild;
@@ -158,11 +158,11 @@
       apps = {
         assigner = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/assigner";
+          program = "${packages.default}/bin/assigner";
         };
         block_gen = {
           type = "app";
-          program = "${self.packages.${system}.default}/bin/block_gen";
+          program = "${packages.default}/bin/block_gen";
         };
       };
       devShells.default = makeDevShell;
