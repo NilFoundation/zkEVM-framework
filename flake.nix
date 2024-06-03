@@ -55,7 +55,10 @@
         overlays = [ nix-3rdparty.overlays.${system}.default ];
         inherit system;
       };
-      evm_assigner = nil-evm-assigner.packages.${system}.default;
+      evm_assigner_pkgs = nil-evm-assigner.packages.${system};
+      evm_assigner = { enableDebug ? false }:
+        if enableDebug then evm_assigner_pkgs.debug else evm_assigner_pkgs.default;
+
       crypto3 = nil-crypto3.packages.${system}.default;
       blueprint = nil-zkllvm-blueprint.packages.${system}.default;
 
@@ -67,15 +70,15 @@
         pkgs.ninja
       ];
 
-      defaultBuildInputs = [
+      defaultBuildInputs = { enableDebug ? false }: [
         # Default nixpkgs packages
         pkgs.boost
         pkgs.valijson
         # Packages from nix-3rdparty
-        pkgs.sszpp
-        pkgs.evmc
+        (pkgs.sszpp.override { inherit enableDebug; })
+        (pkgs.evmc.override { inherit enableDebug; })
         # Repo dependencies
-        evm_assigner
+        (evm_assigner { inherit enableDebug; })
         crypto3
         blueprint
       ];
@@ -101,7 +104,7 @@
 
         nativeBuildInputs = defaultNativeBuildInputs;
 
-        buildInputs = defaultBuildInputs;
+        buildInputs = defaultBuildInputs { };
 
         src = self;
 
@@ -110,12 +113,14 @@
         doCheck = false;
       };
 
-      # TODO: we need to propagate debug mode to dependencies here:
-      # Tracking issue: https://github.com/NilFoundation/zkEVM-framework/issues/58
       debugBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
         name = previousAttrs.name + "-debug";
 
+        buildInputs = defaultBuildInputs { enableDebug = true; };
+
         cmakeBuildType = "Debug";
+
+        dontStrip = true;
       });
 
       testBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
@@ -134,7 +139,7 @@
 
       makeDevShell = pkgs.mkShell {
         nativeBuildInputs = defaultNativeBuildInputs
-          ++ defaultBuildInputs
+          ++ defaultBuildInputs { }
           ++ defaultCheckInputs
           ++ defaultDevTools;
 
@@ -144,8 +149,9 @@
       };
     in
     {
-      packages = {
-        default = releaseBuild;
+      packages = rec {
+        default = release;
+        release = releaseBuild;
         debug = debugBuild;
       };
       checks.default = testBuild;
