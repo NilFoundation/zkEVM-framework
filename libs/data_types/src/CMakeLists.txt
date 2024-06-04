@@ -26,4 +26,4 @@ set(SOURCES
 
 target_sources(${LIBRARY_NAME} PRIVATE ${SOURCES})
 
-target_link_libraries(${LIBRARY_NAME} PRIVATE sszpp Hashtree::Hashtree intx::intx)
+target_link_libraries(${LIBRARY_NAME} PRIVATE sszpp::sszpp Hashtree::Hashtree intx::intx)
