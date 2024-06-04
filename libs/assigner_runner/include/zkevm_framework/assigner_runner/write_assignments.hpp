@@ -4,14 +4,15 @@
  * @brief This file defines functions for writing assignment tables in binary mode.
  */
 
-#ifndef ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_WRITE_ASSIGNMENTS_HPP_
-#define ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_WRITE_ASSIGNMENTS_HPP_
+#ifndef ZKEMV_FRAMEWORK_LIBS_ASSIGNER_RUNNER_INCLUDE_ZKEVM_FRAMEWORK_ASSIGNER_RUNNER_WRITE_ASSIGNMENTS_HPP_
+#define ZKEMV_FRAMEWORK_LIBS_ASSIGNER_RUNNER_INCLUDE_ZKEVM_FRAMEWORK_ASSIGNER_RUNNER_WRITE_ASSIGNMENTS_HPP_
 
 #include <array>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
-#include <iostream>
+#include <optional>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -161,7 +162,7 @@ void write_binary_assignment(const nil::blueprint::assignment<ArithmetizationTyp
  * @brief Write assignment tables serialized into binary to output file.
  */
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
-int write_binary_assignments(
+std::optional<std::string> write_binary_assignments(
     const std::vector<nil::blueprint::assignment<ArithmetizationType>>& assignments,
     const std::string& basefilename) {
     for (auto i = 0; i < assignments.size(); ++i) {
@@ -169,22 +170,21 @@ int write_binary_assignments(
         std::string filename = basefilename + "." + std::to_string(i);
         std::ofstream fout(filename, std::ios_base::binary | std::ios_base::out);
         if (!fout.is_open()) {
-            std::cerr << "Cannot open " << filename << std::endl;
-            return 1;
+            return "Cannot open " + filename;
         }
         BOOST_LOG_TRIVIAL(debug) << "writing table " << i << " into file " << filename;
         write_binary_assignment<Endianness, ArithmetizationType, BlueprintFieldType>(assignment,
                                                                                      fout);
         fout.close();
     }
-    return 0;
+    return {};
 }
 
 /**
  * @brief Write assignments into output artifacts according to thier description.
  */
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
-int write_output_artifacts(
+std::optional<std::string> write_output_artifacts(
     const std::vector<nil::blueprint::assignment<ArithmetizationType>>& assignments,
     const OutputArtifacts& artifacts) {
     BOOST_LOG_TRIVIAL(debug) << "\n";
@@ -202,13 +202,15 @@ int write_output_artifacts(
     BOOST_LOG_TRIVIAL(debug) << "\n";
 
     if (assignments.empty()) {
-        return 0;
+        return {};
     }
+
+    std::ostringstream error;
 
     auto maybe_tables = artifacts.tables.concrete_ranges(assignments.size() - 1);
     if (!maybe_tables.has_value()) {
-        std::cerr << "Tables: " << maybe_tables.error() << std::endl;
-        return 1;
+        error << "Tables: " << maybe_tables.error();
+        return error.str();
     }
     Ranges::ConcreteRanges tables = maybe_tables.value();
 
@@ -221,9 +223,8 @@ int write_output_artifacts(
                 auto maybe_witnesses = artifacts.witness_columns.concrete_ranges(
                     (int)assignment.witnesses_amount() - 1);
                 if (!maybe_witnesses.has_value()) {
-                    std::cerr << "Table " << i << ": Witnesses: " << maybe_witnesses.error()
-                              << std::endl;
-                    return 1;
+                    error << "Table " << i << ": Witnesses: " << maybe_witnesses.error();
+                    return error.str();
                 }
                 witnesses = maybe_witnesses.value();
             }
@@ -233,9 +234,8 @@ int write_output_artifacts(
                 auto maybe_public_inputs = artifacts.public_input_columns.concrete_ranges(
                     (int)assignment.public_inputs_amount() - 1);
                 if (!maybe_public_inputs.has_value()) {
-                    std::cerr << "Table " << i << ": Public inputs: " << maybe_public_inputs.error()
-                              << std::endl;
-                    return 1;
+                    error << "Table " << i << ": Public inputs: " << maybe_public_inputs.error();
+                    return error.str();
                 }
                 public_inputs = maybe_public_inputs.value();
             }
@@ -245,9 +245,8 @@ int write_output_artifacts(
                 auto maybe_constants = artifacts.constant_columns.concrete_ranges(
                     (int)assignment.constants_amount() - 1);
                 if (!maybe_constants.has_value()) {
-                    std::cerr << "Table " << i << ": Constants: " << maybe_constants.error()
-                              << std::endl;
-                    return 1;
+                    error << "Table " << i << ": Constants: " << maybe_constants.error();
+                    return error.str();
                 }
                 constants = maybe_constants.value();
             }
@@ -257,9 +256,8 @@ int write_output_artifacts(
                 auto maybe_selectors = artifacts.selector_columns.concrete_ranges(
                     (int)assignment.selectors_amount() - 1);
                 if (!maybe_selectors.has_value()) {
-                    std::cerr << "Table " << i << ": Selectors: " << maybe_selectors.error()
-                              << std::endl;
-                    return 1;
+                    error << "Table " << i << ": Selectors: " << maybe_selectors.error();
+                    return error.str();
                 }
                 selectors = maybe_selectors.value();
             }
@@ -268,8 +266,8 @@ int write_output_artifacts(
             if (!artifacts.rows.empty()) {
                 auto maybe_rows = artifacts.rows.concrete_ranges((int)assignment.max_size() - 1);
                 if (!maybe_rows.has_value()) {
-                    std::cerr << "Table " << i << ": Rows: " << maybe_rows.error() << std::endl;
-                    return 1;
+                    error << "Table " << i << ": Rows: " << maybe_rows.error();
+                    return error.str();
                 }
                 rows = maybe_rows.value();
             }
@@ -285,8 +283,8 @@ int write_output_artifacts(
 
                 std::ofstream fout(filename, std::ios_base::binary | std::ios_base::out);
                 if (!fout.is_open()) {
-                    std::cerr << "Cannot open " << filename << std::endl;
-                    return 1;
+                    error << "Cannot open " << filename;
+                    return error.str();
                 }
                 assignment.export_table(fout, witnesses, public_inputs, constants, selectors, rows);
                 fout.close();
@@ -295,7 +293,7 @@ int write_output_artifacts(
         }
     }
 
-    return 0;
+    return {};
 }
 
-#endif  // ZKEMV_FRAMEWORK_BIN_ASSIGNER_INCLUDE_WRITE_ASSIGNMENTS_HPP_
+#endif  // ZKEMV_FRAMEWORK_LIBS_ASSIGNER_RUNNER_INCLUDE_ZKEVM_FRAMEWORK_ASSIGNER_RUNNER_WRITE_ASSIGNMENTS_HPP_

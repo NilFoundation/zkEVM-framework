@@ -1,7 +1,3 @@
-#include <assert.h>
-
-#include <cstdint>
-#include <cstdio>
 #include <expected>
 #include <fstream>
 #include <iostream>
@@ -16,6 +12,7 @@
 #define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
+#include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 #include <nil/crypto3/algebra/curves/ed25519.hpp>
@@ -26,10 +23,9 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 
-#include "runner.hpp"
-#include "state_parser.hpp"
-#include "utils.h"
-#include "vm_host.h"
+#include "zkevm_framework/assigner_runner/runner.hpp"
+#include "zkevm_framework/assigner_runner/state_parser.hpp"
+#include "zkevm_framework/assigner_runner/utils.hpp"
 #include "zkevm_framework/data_types/account.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 #include "zkevm_framework/data_types/transaction.hpp"
@@ -47,36 +43,10 @@ int curve_dependent_main(const std::string& input_block_file_name,
     // init current account storage
     evmc::accounts account_storage;
     if (!account_storage_config_name.empty()) {
-        std::ifstream asc_stream(account_storage_config_name);
-        if (!asc_stream.is_open()) {
-            std::cerr << "Could not open the account storage config: '"
-                      << account_storage_config_name << "'" << std::endl;
-            return -1;
-        }
-        auto init_err = init_account_storage(account_storage, asc_stream);
+        auto init_err = init_account_storage(account_storage, account_storage_config_name);
         if (init_err) {
             std::cerr << init_err.value() << std::endl;
             return -1;
-        }
-
-        if (log_level <= boost::log::trivial::debug) {
-            BOOST_LOG_TRIVIAL(debug)
-                << "Account storage initialized with " << account_storage.size() << " accounts: \n";
-            for (const auto& [addr, acc] : account_storage) {
-                BOOST_LOG_TRIVIAL(debug) << "\tAddress: " << to_str(addr) << '\n'
-                                         << "\tBalance: " << to_str(acc.balance) << '\n';
-                if (!acc.code.empty()) {
-                    BOOST_LOG_TRIVIAL(debug) << "\tCode: " << to_str(acc.code);
-                }
-                if (!acc.storage.empty()) {
-                    BOOST_LOG_TRIVIAL(debug) << "\tStorage:\n";
-                    for (const auto& [key, value] : acc.storage) {
-                        BOOST_LOG_TRIVIAL(debug)
-                            << "[ " << to_str(key) << " ] = " << to_str(value) << "\n";
-                    }
-                }
-                BOOST_LOG_TRIVIAL(debug) << std::endl;
-            }
         }
     }
 
@@ -98,7 +68,13 @@ int curve_dependent_main(const std::string& input_block_file_name,
     auto input_block = maybe_input_block.value();
     input_block_file.close();
 
-    return runner.run(input_block, assignment_table_file_name, artifacts);
+    std::optional<std::string> run_err =
+        runner.run(input_block, assignment_table_file_name, artifacts);
+    if (run_err.has_value()) {
+        std::cerr << "Assigner run failed: " << run_err.value() << std::endl;
+        return 1;
+    }
+    return 0;
 }
 
 int main(int argc, char* argv[]) {
