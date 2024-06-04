@@ -1,10 +1,11 @@
-#include "state_parser.hpp"
+#include "zkevm_framework/assigner_runner/state_parser.hpp"
 
 #include <boost/algorithm/hex.hpp>
 #include <boost/endian.hpp>
 #include <boost/endian/conversion.hpp>
 #include <cstring>
 #include <evmc/evmc.hpp>
+#include <fstream>
 #include <iostream>
 
 #include "state_schema.def"
@@ -67,7 +68,8 @@ static void handle_account(const boost::json::object &account_obj, evmc::account
     }
 }
 
-std::optional<std::string> init_account_storage(evmc::accounts &res, std::istream &config) {
+std::optional<std::string> init_account_storage(evmc::accounts &account_storage,
+                                                std::istream &config) {
     auto config_json = json_helpers::parse_json(config);
     if (!config_json) {
         return "Error while parsing state config file: " + config_json.error();
@@ -88,8 +90,17 @@ std::optional<std::string> init_account_storage(evmc::accounts &res, std::istrea
         const boost::json::object &account_json = item.as_object();
         evmc::address account_address;
         get_bytes(account_json.at("address"), account_address);
-        res.emplace(account_address, evmc::account());
-        handle_account(account_json, res.at(account_address));
+        account_storage.emplace(account_address, evmc::account());
+        handle_account(account_json, account_storage.at(account_address));
     }
     return {};
+}
+
+std::optional<std::string> init_account_storage(evmc::accounts &account_storage,
+                                                const std::string &account_storage_config_name) {
+    std::ifstream asc_stream(account_storage_config_name);
+    if (!asc_stream.is_open()) {
+        return "Could not open the account storage config: '" + account_storage_config_name + "'";
+    }
+    return init_account_storage(account_storage, asc_stream);
 }

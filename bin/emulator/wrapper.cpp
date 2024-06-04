@@ -1,6 +1,8 @@
 #include "wrapper.hpp"
 
-#include "runner.hpp"
+#include <nil/crypto3/algebra/curves/pallas.hpp>
+
+#include "zkevm_framework/assigner_runner/runner.hpp"
 #include "zkevm_framework/block_generator/block_generator.hpp"
 #include "zkevm_framework/json_helpers/json_helpers.hpp"
 
@@ -21,7 +23,7 @@ void* make_runner() {
 int run(void* handler, const unsigned char* input_block_data, unsigned long input_block_size) {
     single_thread_runner<BlueprintFieldType>* ptr =
         reinterpret_cast<single_thread_runner<BlueprintFieldType>*>(handler);
-    return ptr->run(input_block_data, input_block_size, "", std::nullopt);
+    return ptr->run(input_block_data, input_block_size, "", std::nullopt) ? 1 : 0;
 }
 
 int create_block(const char* config_file_name, unsigned char* input_block_data) {
