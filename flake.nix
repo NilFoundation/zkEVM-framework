@@ -139,14 +139,14 @@
         dontInstall = true;
       });
 
-      makeDevShell = pkgs.mkShell {
+      makeDevShell = { enableDebug }: pkgs.mkShell {
         nativeBuildInputs = defaultNativeBuildInputs
-          ++ defaultBuildInputs { }
+          ++ defaultBuildInputs { inherit enableDebug; }
           ++ defaultCheckInputs
           ++ defaultDevTools;
 
         shellHook = ''
-          echo "zkEVM-framework dev environment activated"
+          echo "zkEVM-framework ${if enableDebug then "debug" else "release"} dev environment activated"
         '';
       };
     in
@@ -167,7 +167,11 @@
           program = "${packages.default}/bin/block_gen";
         };
       };
-      devShells.default = makeDevShell;
+      devShells = rec {
+        default = debug;
+        release = makeDevShell { enableDebug = false; };
+        debug = makeDevShell { enableDebug = true; };
+      };
     }
     );
 }
