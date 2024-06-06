@@ -40,3 +40,6 @@ jobs:
 
       - name: Run checks
         run: nix flake -L check
+
+      - name: Check build without nix environment
+        run: .github/scripts/pure_cmake_build.sh

@@ -1,7 +1,7 @@
 include(SchemaHelper)
 generate_schema_include(block_schema_include resources/block_schema.json)
 
-add_library(zkEVMBlockGenerator STATIC block_generator.cpp)
+add_library(zkEVMBlockGenerator SHARED block_generator.cpp)
 add_dependencies(zkEVMBlockGenerator block_schema_include)
 
 find_package(Boost COMPONENTS REQUIRED json)
