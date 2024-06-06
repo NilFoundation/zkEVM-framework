@@ -1,6 +1,6 @@
 set(LIBRARY_NAME zkEVMDataTypes)
 
-add_library(${LIBRARY_NAME} STATIC)
+add_library(${LIBRARY_NAME} SHARED)
 
 # SSZ++ requires C++23, also DataTypes is using <expected>
 # This feature will be propagated to all targets linked with the library

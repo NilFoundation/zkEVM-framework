@@ -1,4 +1,4 @@
-add_library(zkEVMAssignerRunner STATIC
+add_library(zkEVMAssignerRunner SHARED
             src/runner.cpp
             src/utils.cpp
             src/state_parser.cpp
