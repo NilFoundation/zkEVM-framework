@@ -15,9 +15,10 @@ target_include_directories(${TARGET_NAME}
 
 target_compile_options(${TARGET_NAME} PRIVATE "-fPIC")
 
+find_package(evm-assigner REQUIRED)
 target_link_libraries(${TARGET_NAME}
     PRIVATE
-    evmone_assigner
+    evm-assigner::evm-assigner
     zkEVMAssignerRunner
     zkEVMDataTypes
     zkEVMJsonHelpers

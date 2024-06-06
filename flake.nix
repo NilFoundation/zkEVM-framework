@@ -37,6 +37,7 @@
       submodules = true;
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
         nil_crypto3.follows = "nil-crypto3";
       };
     };

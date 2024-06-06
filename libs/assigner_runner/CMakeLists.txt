@@ -14,16 +14,17 @@ target_include_directories(zkEVMAssignerRunner
 )
 
 find_package(Boost COMPONENTS REQUIRED log random)
+find_package(evm-assigner REQUIRED)
 target_link_libraries(zkEVMAssignerRunner
                         PUBLIC
-                        evmone_assigner
+                        evm-assigner::evm-assigner
                         zkEVMDataTypes
                         zkEVMJsonHelpers
                         zkEVMOutputArtifacts
                         Boost::log
                         Boost::random
                         PRIVATE
-                        evmone
+                        evm-assigner::evmone
 )
 
 install(TARGETS zkEVMAssignerRunner
