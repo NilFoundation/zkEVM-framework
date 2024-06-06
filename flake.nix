@@ -17,6 +17,8 @@
       repo = "evm-assigner";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+        nix-3rdparty.follows = "nix-3rdparty";
         nil_crypto3.follows = "nil-crypto3";
         nil_zkllvm_blueprint.follows = "nil-zkllvm-blueprint";
       };

@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "evmc": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1711484129,
-        "narHash": "sha256-yqEbtRA4GiQ/pjaH2+ZPfnthgt9gLPY4lWPTYbBWJhE=",
-        "owner": "ethereum",
-        "repo": "evmc",
-        "rev": "fc86231960348790bbee8254a809bf1f9d7c8517",
-        "type": "github"
-      },
-      "original": {
-        "owner": "ethereum",
-        "repo": "evmc",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -31,22 +15,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "intx": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1704400684,
-        "narHash": "sha256-XNpSO++FuG27Bgf5My9eJ/zrQlsWcGajfq4Y2UI2Kpk=",
-        "owner": "chfast",
-        "repo": "intx",
-        "rev": "e0732242e36b3bb08cc8cc23445b2bee7c28b9d0",
-        "type": "github"
-      },
-      "original": {
-        "owner": "chfast",
-        "repo": "intx",
         "type": "github"
       }
     },
@@ -74,24 +42,28 @@
     },
     "nil-evm-assigner": {
       "inputs": {
-        "evmc": "evmc",
-        "intx": "intx",
+        "flake-utils": [
+          "flake-utils"
+        ],
         "nil_crypto3": [
           "nil-crypto3"
         ],
         "nil_zkllvm_blueprint": [
           "nil-zkllvm-blueprint"
         ],
+        "nix-3rdparty": [
+          "nix-3rdparty"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1716197021,
-        "narHash": "sha256-LVp+SvCqwcJXPKbmqRUG+w8okqjd1FiRCoSOwiOWmT8=",
+        "lastModified": 1717676550,
+        "narHash": "sha256-W+gFcdI+b+e5uCN5OxyUJmaVriEidfbEpwLHykwziWE=",
         "owner": "NilFoundation",
         "repo": "evm-assigner",
-        "rev": "8ae858314b7f595824655a7342eac260d54e0b16",
+        "rev": "073cd2a4ad32f051b4ea1ea1e5ffc028f0ab80f0",
         "type": "github"
       },
       "original": {
