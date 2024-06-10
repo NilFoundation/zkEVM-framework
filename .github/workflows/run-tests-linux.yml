@@ -41,5 +41,10 @@ jobs:
       - name: Run checks
         run: nix flake -L check
 
+      - name: Check if applications work without errors
+        run: |
+          nix run .#block_gen -L -- -i bin/assigner/example_data/call_block.json -o call_block.ssz
+          nix run .#assigner -L -- -b call_block.ssz -t assignments -e pallas -s bin/assigner/example_data/state.json --log-level debug
+
       - name: Check build without nix environment
         run: .github/scripts/pure_cmake_build.sh

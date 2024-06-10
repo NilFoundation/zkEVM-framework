@@ -191,7 +191,7 @@ nix run .#assigner [-L] [--override-input nil_evm_assigner /path_to/evm-assigner
 Test block could be generated from config file in JSON format
 
 ```bash
-nix run .#block_gen [-L] -i bin/assigner/example_data/call_block.json -o call_block.ssz
+nix run .#block_gen [-L] -- -i bin/assigner/example_data/call_block.json -o call_block.ssz
 ```
 
 ### Human-readable assignments
