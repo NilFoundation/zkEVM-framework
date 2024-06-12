@@ -111,6 +111,22 @@
 
         src = self;
 
+        # This is a hack to avoid Nix forcing -L and -isystem flags to the compiler.
+        # See: https://nixos.wiki/wiki/C
+        # Whithout this Nix will call the compiler in such way, that most of CMake
+        # include and link flags will have no effect.
+        preConfigure = ''
+          echo "Filtering NIX_LDFLAGS and NIX_CFLAGS_COMPILE"
+          echo "Before:"
+          echo "  NIX_LDFLAGS=$NIX_LDFLAGS"
+          echo "  NIX_CFLAGS_COMPILE=$NIX_CFLAGS_COMPILE"
+          export NIX_LDFLAGS=$(echo $NIX_LDFLAGS | bash scripts/clear_gcc_flags.sh)
+          export NIX_CFLAGS_COMPILE=$(echo $NIX_CFLAGS_COMPILE | bash scripts/clear_gcc_flags.sh)
+          echo "After:"
+          echo "  NIX_LDFLAGS=$NIX_LDFLAGS"
+          echo "  NIX_CFLAGS_COMPILE=$NIX_CFLAGS_COMPILE"
+        '';
+
         cmakeBuildType = "Release";
 
         doCheck = false;
