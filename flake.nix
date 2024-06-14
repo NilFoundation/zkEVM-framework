@@ -86,7 +86,6 @@
 
       defaultBuildInputs = { enableDebug ? false }: [
         # Default nixpkgs packages
-        pkgs.boost
         pkgs.python3
         pkgs.python311Packages.jsonschema
         pkgs.solc
@@ -98,6 +97,8 @@
         (evm_assigner { inherit enableDebug; })
         crypto3
         blueprint
+        # Blueprint will propagate Boost library.
+        # We don't include it here explicitly to reuse the same version.
         cluster
       ];
 
