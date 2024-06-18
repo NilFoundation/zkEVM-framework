@@ -7,7 +7,7 @@
 #include <nil/blueprint/blueprint/plonk/assignment.hpp>
 
 #include "output_artifacts.hpp"
-#include "vm_host.h"
+#include "vm_host.hpp"
 #include "zkevm_framework/assigner_runner/utils.hpp"
 #include "zkevm_framework/data_types/block.hpp"
 

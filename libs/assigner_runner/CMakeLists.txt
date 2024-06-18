@@ -23,8 +23,6 @@ target_link_libraries(zkEVMAssignerRunner
                         zkEVMOutputArtifacts
                         Boost::log
                         Boost::random
-                        PRIVATE
-                        evm-assigner::evmone
 )
 
 install(TARGETS zkEVMAssignerRunner

@@ -1,8 +1,6 @@
 #include "zkevm_framework/assigner_runner/runner.hpp"
 
-#include <evmone/evmone.h>
-
-#include <nil/blueprint/assigner.hpp>
+#include <assigner.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 #include <optional>
@@ -84,13 +82,12 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
     std::ostringstream error;
 
     // create assigner instance
-    nil::blueprint::assigner<BlueprintFieldType> assigner_instance(m_assignments);
+    auto assigner_ptr =
+        std::make_shared<nil::blueprint::assigner<BlueprintFieldType>>(m_assignments);
 
     // get header of the current block
     const auto block_header = input_block.m_currentBlock;
 
-    // create EVM instance
-    auto vm = evmc_create_evmone();
     evmc_revision rev = {};
 
     const evmc_address empty_addr = to_evmc_address({0});
@@ -131,7 +128,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
     // default interface for access to the host
     const struct evmc_host_interface* host_interface = &evmc::Host::get_interface();
 
-    VMHost host(tx_context, m_account_storage, assigner_instance.get_handler());
+    VMHost host(tx_context, m_account_storage, assigner_ptr);
     struct evmc_host_context* ctx = host.to_context();
     const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
 
@@ -215,8 +212,8 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
                                  << "  gas = " << transaction.m_gas << "\n"
                                  << "  code size = " << transaction.m_data.size() << "\n";
 
-        auto res = assigner_instance.evaluate(vm, host_interface, ctx, rev, &msg, code.data(),
-                                              code.size());
+        auto res = nil::blueprint::evaluate(host_interface, ctx, rev, &msg, code.data(),
+                                            code.size(), assigner_ptr);
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate result = " << to_str(res.status_code) << "\n";
         if (res.status_code == EVMC_SUCCESS) {
