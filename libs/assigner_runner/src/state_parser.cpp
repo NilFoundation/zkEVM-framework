@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include "state_schema.def"
-#include "vm_host.h"
 #include "zkevm_framework/json_helpers/json_helpers.hpp"
 
 // Transform hex string into Address or bytes

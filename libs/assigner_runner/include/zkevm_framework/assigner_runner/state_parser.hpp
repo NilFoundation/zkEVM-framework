@@ -5,7 +5,7 @@
 #include <optional>
 #include <string>
 
-#include "vm_host.h"
+#include "vm_host.hpp"
 
 /// @brief Fill account storage by config from input stream
 std::optional<std::string> init_account_storage(evmc::accounts &account_storage,
