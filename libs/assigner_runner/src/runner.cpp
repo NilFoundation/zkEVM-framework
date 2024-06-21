@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 
+#include "zkevm_framework/block_extractor/block_extractor.hpp"
 #include "zkevm_framework/assigner_runner/utils.hpp"
 #include "zkevm_framework/assigner_runner/write_assignments.hpp"
 #include "zkevm_framework/data_types/account.hpp"
@@ -84,6 +85,14 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
     // create assigner instance
     auto assigner_ptr =
         std::make_shared<nil::blueprint::assigner<BlueprintFieldType>>(m_assignments);
+
+    // get block form RPC
+    data_types::block_extractor extractor("127.0.0.1", 8529);
+    std::expected<data_types::Block, std::string> block = extractor.get_block(0);
+    if (!block) {
+        error << "Failed extract block " << block.error();
+        return block.error();
+    }
 
     // get header of the current block
     const auto block_header = input_block.m_currentBlock;

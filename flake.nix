@@ -77,6 +77,7 @@
         # Default nixpkgs packages
         pkgs.boost
         pkgs.valijson
+        pkgs.httplib
         # Packages from nix-3rdparty
         (pkgs.sszpp.override { inherit enableDebug; })
         (pkgs.evmc.override { inherit enableDebug; })
