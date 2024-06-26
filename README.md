@@ -194,6 +194,22 @@ Test block could be generated from config file in JSON format
 nix run .#block_gen [-L] -- -i bin/assigner/example_data/call_block.json -o call_block.ssz
 ```
 
+### Nil CLI block generation
+
+Wrapper script for `nil_cli` is available to deploy and call Solidity contracts.
+It requires `nil` and `nil_cli` binaries in `PATH` (already available inside Nix dev environment).
+
+Usage:
+
+```bash
+# Generate bytecode and abi files for contract
+solc -o . --bin --abi bin/block_generator/contracts/counter.sol
+# Generate CLI config with server endpoint, private key and wallet address
+./bin/block_generator/block_generator.py --mode make-config --config-name test_config.yaml
+# Deploy and call the contract
+./bin/block_generator/block_generator.py --mode generate-blocks --config-name test_config.yaml --contract-binary SimpleStorage.bin --method-name increment
+```
+
 ### Human-readable assignments
 
 While generating assignment table, you can partially dump it into text form.

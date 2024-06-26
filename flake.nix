@@ -23,6 +23,15 @@
         nil_zkllvm_blueprint.follows = "nil-zkllvm-blueprint";
       };
     };
+    nil-cluster = {
+      type = "github";
+      owner = "NilFoundation";
+      repo = "nil";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
+    };
     nil-crypto3 = {
       url = "https://github.com/NilFoundation/crypto3";
       type = "git";
@@ -51,6 +60,7 @@
     , nil-evm-assigner
     , nil-crypto3
     , nil-zkllvm-blueprint
+    , nil-cluster
     }:
     flake-utils.lib.eachDefaultSystem (system:
     let
@@ -64,6 +74,7 @@
 
       crypto3 = nil-crypto3.packages.${system}.default;
       blueprint = nil-zkllvm-blueprint.packages.${system}.default;
+      cluster = nil-cluster.packages.${system}.default;
 
       # Default env will bring us GCC 13 as default compiler
       stdenv = pkgs.stdenv;
@@ -76,6 +87,8 @@
       defaultBuildInputs = { enableDebug ? false }: [
         # Default nixpkgs packages
         pkgs.boost
+        pkgs.python3
+        pkgs.solc
         pkgs.valijson
         # Packages from nix-3rdparty
         (pkgs.sszpp.override { inherit enableDebug; })
@@ -84,6 +97,7 @@
         (evm_assigner { inherit enableDebug; })
         crypto3
         blueprint
+        cluster
       ];
 
       defaultCheckInputs = [

@@ -18,6 +18,29 @@
         "type": "github"
       }
     },
+    "nil-cluster": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1719318537,
+        "narHash": "sha256-/9OWxXO9Xoe1ZEn4nseJ+BS0ELjXrSEsvQ1GrZBQr84=",
+        "owner": "NilFoundation",
+        "repo": "nil",
+        "rev": "7456149fad355b9d62b39d006772a1c2c7bc3870",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NilFoundation",
+        "repo": "nil",
+        "type": "github"
+      }
+    },
     "nil-crypto3": {
       "inputs": {
         "nixpkgs": [
@@ -141,6 +164,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "nil-cluster": "nil-cluster",
         "nil-crypto3": "nil-crypto3",
         "nil-evm-assigner": "nil-evm-assigner",
         "nil-zkllvm-blueprint": "nil-zkllvm-blueprint",
