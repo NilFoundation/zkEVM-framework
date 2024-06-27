@@ -24,45 +24,13 @@ class single_thread_runner {
         initialize_assignments(column_sizes);
     }
 
-    /// @brief Initialize runner with predefined account storage
-    single_thread_runner(const evmc::accounts& account_storage,
-                         const std::vector<std::array<std::size_t, 4>>& column_sizes,
-                         boost::log::trivial::severity_level log_level = boost::log::trivial::info)
-        : m_account_storage(account_storage), m_log_level(log_level) {
-        initialize_assignments(column_sizes);
-        if (log_level <= boost::log::trivial::debug) {
-            BOOST_LOG_TRIVIAL(debug)
-                << "Account storage initialized with " << account_storage.size() << " accounts: \n";
-            for (const auto& [addr, acc] : account_storage) {
-                BOOST_LOG_TRIVIAL(debug) << "\tAddress: " << to_str(addr) << '\n'
-                                         << "\tBalance: " << to_str(acc.balance) << '\n';
-                if (!acc.code.empty()) {
-                    BOOST_LOG_TRIVIAL(debug) << "\tCode: " << to_str(acc.code);
-                }
-                if (!acc.storage.empty()) {
-                    BOOST_LOG_TRIVIAL(debug) << "\tStorage:\n";
-                    for (const auto& [key, value] : acc.storage) {
-                        BOOST_LOG_TRIVIAL(debug)
-                            << "[ " << to_str(key) << " ] = " << to_str(value) << "\n";
-                    }
-                }
-                BOOST_LOG_TRIVIAL(debug) << std::endl;
-            }
-        }
-    }
-
-    /// @brief Execute one block presented as native unsigned char array
-    std::optional<std::string> run(const unsigned char* input_block_data, size_t input_block_size,
-                                   const std::string& assignment_table_file_name,
-                                   const std::optional<OutputArtifacts>& artifacts);
-
-    /// @brief Execute one block presented as data_types::Block structure
-    std::optional<std::string> run(const data_types::Block& input_block,
+    /// @brief Execute one block
+    std::optional<std::string> run(uint64_t shardId, uint64_t blockId,
                                    const std::string& assignment_table_file_name,
                                    const std::optional<OutputArtifacts>& artifacts);
 
     /// @brief Execute the block but write only to internal assignments field
-    std::optional<std::string> fill_assignments(const data_types::Block& input_block);
+    std::optional<std::string> fill_assignments(uint64_t shardId, uint64_t blockId);
 
     /// @brief Get reference to assignents
     const std::vector<nil::blueprint::assignment<ArithmetizationType>>& get_assignments() const;
@@ -71,7 +39,6 @@ class single_thread_runner {
     void initialize_assignments(const std::vector<std::array<std::size_t, 4>>& column_sizes);
 
     std::vector<nil::blueprint::assignment<ArithmetizationType>> m_assignments;
-    evmc::accounts m_account_storage;
     boost::log::trivial::severity_level m_log_level;
 };
 

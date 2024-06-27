@@ -31,8 +31,7 @@
 #include "zkevm_framework/data_types/transaction.hpp"
 
 template<typename BlueprintFieldType>
-int curve_dependent_main(const std::string& input_block_file_name,
-                         const std::string& account_storage_config_name,
+int curve_dependent_main(uint64_t shardId, uint64_t blockId,
                          const std::string& assignment_table_file_name,
                          const std::optional<OutputArtifacts>& artifacts,
                          boost::log::trivial::severity_level log_level,
@@ -40,36 +39,10 @@ int curve_dependent_main(const std::string& input_block_file_name,
     using ArithmetizationType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
 
-    // init current account storage
-    evmc::accounts account_storage;
-    if (!account_storage_config_name.empty()) {
-        auto init_err = init_account_storage(account_storage, account_storage_config_name);
-        if (init_err) {
-            std::cerr << init_err.value() << std::endl;
-            return -1;
-        }
-    }
-
-    single_thread_runner<BlueprintFieldType> runner(account_storage, column_sizes, log_level);
-
-    std::ifstream input_block_file(input_block_file_name.c_str(),
-                                   std::ios_base::binary | std::ios_base::in);
-    if (!input_block_file.is_open()) {
-        std::cerr << "Could not open the file - '" << input_block_file_name << "'" << std::endl;
-        return -1;
-    }
-    auto maybe_input_block = data_types::Block::deserialize(input_block_file);
-    if (!maybe_input_block.has_value()) {
-        std::cerr << "Could not read - '" << input_block_file_name << "'"
-                  << ": " << maybe_input_block.error() << std::endl;
-        input_block_file.close();
-        return -1;
-    }
-    auto input_block = maybe_input_block.value();
-    input_block_file.close();
+    single_thread_runner<BlueprintFieldType> runner(column_sizes, log_level);
 
     std::optional<std::string> run_err =
-        runner.run(input_block, assignment_table_file_name, artifacts);
+        runner.run(shardId, blockId, assignment_table_file_name, artifacts);
     if (run_err.has_value()) {
         std::cerr << "Assigner run failed: " << run_err.value() << std::endl;
         return 1;
@@ -97,9 +70,8 @@ int main(int argc, char* argv[]) {
                                                                                    "Format is --columns <name>N|N-|-N|N-M(,N|N-|-N|N-M)*, where <name> is public_input|witness|constant|selector."
                                                                                    "If not specified, outputs all columns. "
                                                                                    "May be provided multiple times with different column types")
-            ("input-assignment-tables,i", boost::program_options::value<std::string>(), "Assignment table input files")
-            ("input-block,b", boost::program_options::value<std::string>(), "Block input files")
-            ("account-storage,s", boost::program_options::value<std::string>(), "Account storage config file")
+            ("shard-id", boost::program_options::value<uint64_t>(), "ID of the shard where executed block")
+            ("block-id", boost::program_options::value<uint64_t>(), "ID of the block")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)");
     // clang-format on
@@ -133,9 +105,8 @@ int main(int argc, char* argv[]) {
     }
 
     std::string assignment_table_file_name;
-    std::string input_assignment_table_file_name;
-    std::string input_block_file_name;
-    std::string account_storage_config_name;
+    uint64_t shardId = 1;
+    uint64_t blockId = 0;
     std::string elliptic_curve;
     std::string log_level;
 
@@ -148,6 +119,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    if (vm.count("shard-id")) {
+        shardId = vm["shard-id"].as<uint64_t>();
+    }
+
+    if (vm.count("block-id")) {
+        blockId = vm["block-id"].as<uint64_t>();
+    }
+
     std::optional<OutputArtifacts> artifacts = std::nullopt;
     if (vm.count("output-text")) {
         auto maybe_artifacts = OutputArtifacts::from_program_options(vm);
@@ -157,25 +136,6 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         artifacts = maybe_artifacts.value();
-    }
-
-    if (vm.count("input-assignment-tables")) {
-        input_assignment_table_file_name = vm["input-assignment-tables"].as<std::string>();
-    } else {
-        input_assignment_table_file_name = "";
-    }
-
-    if (vm.count("input-block")) {
-        input_block_file_name = vm["input-block"].as<std::string>();
-    } else {
-        std::cerr << "Invalid command line argument - input block file name is not specified"
-                  << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
-    }
-
-    if (vm.count("account-storage")) {
-        account_storage_config_name = vm["account-storage"].as<std::string>();
     }
 
     if (vm.count("elliptic-curve-type")) {
@@ -232,7 +192,7 @@ int main(int argc, char* argv[]) {
         case 0: {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::curves::pallas::base_field_type>(
-                input_block_file_name, account_storage_config_name, assignment_table_file_name,
+                shardId, blockId, assignment_table_file_name,
                 artifacts, log_options[log_level], column_sizes);
             break;
         }
@@ -247,7 +207,7 @@ int main(int argc, char* argv[]) {
         case 3: {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
-                input_block_file_name, account_storage_config_name, assignment_table_file_name,
+                shardId, blockId, assignment_table_file_name,
                 artifacts, log_options[log_level], column_sizes);
             break;
         }

@@ -27,31 +27,9 @@ void single_thread_runner<BlueprintFieldType>::initialize_assignments(
 
 template<typename BlueprintFieldType>
 std::optional<std::string> single_thread_runner<BlueprintFieldType>::run(
-    const unsigned char* input_block_data, size_t input_block_size,
-    const std::string& assignment_table_file_name,
+    uint64_t shardId, uint64_t blockId, const std::string& assignment_table_file_name,
     const std::optional<OutputArtifacts>& artifacts) {
-    data_types::bytes block_data;
-    block_data.resize(input_block_size);
-    for (size_t i = 0; i < input_block_size; i++) {
-        block_data[i] = static_cast<std::byte>(input_block_data[i]);
-    }
-
-    auto maybe_input_block = data_types::Block::deserialize(block_data);
-    if (!maybe_input_block.has_value()) {
-        std::ostringstream error;
-        error << maybe_input_block.error();
-        return error.str();
-    }
-
-    auto input_block = maybe_input_block.value();
-    return run(input_block, assignment_table_file_name, artifacts);
-}
-
-template<typename BlueprintFieldType>
-std::optional<std::string> single_thread_runner<BlueprintFieldType>::run(
-    const data_types::Block& input_block, const std::string& assignment_table_file_name,
-    const std::optional<OutputArtifacts>& artifacts) {
-    fill_assignments(input_block);
+    fill_assignments(shardId, blockId);
 
     BOOST_LOG_TRIVIAL(debug) << "print assignment tables " << m_assignments.size() << "\n";
 
@@ -77,8 +55,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::run(
 }
 
 template<typename BlueprintFieldType>
-std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assignments(
-    const data_types::Block& input_block) {
+std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assignments(uint64_t shardId, uint64_t blockId) {
     boost::log::core::get()->set_filter(boost::log::trivial::severity >= m_log_level);
     std::ostringstream error;
 
@@ -94,8 +71,11 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
         return block.error();
     }
 
+    // get accounts from RPC
+    evmc::accounts account_storage;
+
     // get header of the current block
-    const auto block_header = input_block.m_currentBlock;
+    const auto block_header = block->m_currentBlock;
 
     evmc_revision rev = {};
 
@@ -111,6 +91,26 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
                              << "  base fee = " << block_header.m_basefee << "\n"
                              << "  blob base fee = " << block_header.m_blob_basefee << "\n"
                              << "\n";
+
+    if (m_log_level <= boost::log::trivial::debug) {
+        BOOST_LOG_TRIVIAL(debug)
+            << "Account storage initialized with " << account_storage.size() << " accounts: \n";
+        for (const auto& [addr, acc] : account_storage) {
+            BOOST_LOG_TRIVIAL(debug) << "\tAddress: " << to_str(addr) << '\n'
+                                        << "\tBalance: " << to_str(acc.balance) << '\n';
+            if (!acc.code.empty()) {
+                BOOST_LOG_TRIVIAL(debug) << "\tCode: " << to_str(acc.code);
+            }
+            if (!acc.storage.empty()) {
+                BOOST_LOG_TRIVIAL(debug) << "\tStorage:\n";
+                for (const auto& [key, value] : acc.storage) {
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "[ " << to_str(key) << " ] = " << to_str(value) << "\n";
+                }
+            }
+            BOOST_LOG_TRIVIAL(debug) << std::endl;
+        }
+    }
     // transaction and block data for execution
     struct evmc_tx_context tx_context = {
         // per transaction value
@@ -137,11 +137,11 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
     // default interface for access to the host
     const struct evmc_host_interface* host_interface = &evmc::Host::get_interface();
 
-    VMHost host(tx_context, m_account_storage, assigner_ptr);
+    VMHost host(tx_context, account_storage, assigner_ptr);
     struct evmc_host_context* ctx = host.to_context();
-    const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
+    const std::vector<data_types::AccountBlock>& accountBlocks = block->m_accountBlocks;
 
-    for (const auto& input_msg : input_block.m_inputMsgs) {
+    for (const auto& input_msg : block->m_inputMsgs) {
         const evmc_address origin_addr = to_evmc_address(input_msg.m_info.m_src);
         tx_context.tx_origin = origin_addr;
 
