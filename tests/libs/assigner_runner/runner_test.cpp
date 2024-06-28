@@ -36,12 +36,8 @@ TEST(runner_test, check_block) {
                                                                 30   // selectors
                                                             }};
 
-    evmc::accounts account_storage;
-    auto init_err = init_account_storage(account_storage, STATE_CONFIG);
-    ASSERT_FALSE(init_err.has_value());
-    single_thread_runner<BlueprintFieldType> runner(account_storage, column_sizes,
-                                                    boost::log::trivial::severity_level::debug);
-    auto run_err = runner.fill_assignments(input_block);
+    single_thread_runner<BlueprintFieldType> runner(column_sizes, boost::log::trivial::severity_level::debug);
+    auto run_err = runner.fill_assignments(1, 0);
     ASSERT_FALSE(run_err.has_value());
     // Checks below are disabled due to frequent changes in filling assignment tables
     /*

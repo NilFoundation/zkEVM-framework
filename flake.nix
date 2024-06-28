@@ -90,6 +90,7 @@
         pkgs.python311Packages.jsonschema
         pkgs.solc
         pkgs.valijson
+        pkgs.httplib
         # Packages from nix-3rdparty
         (pkgs.sszpp.override { inherit enableDebug; })
         (pkgs.evmc.override { inherit enableDebug; })

@@ -21,6 +21,7 @@ target_link_libraries(zkEVMAssignerRunner
                         zkEVMDataTypes
                         zkEVMJsonHelpers
                         zkEVMOutputArtifacts
+                        zkEVMBlockExtractor
                         Boost::log
                         Boost::random
 )
