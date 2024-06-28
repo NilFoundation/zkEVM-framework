@@ -202,13 +202,38 @@ It requires `nil` and `nil_cli` binaries in `PATH` (already available inside Nix
 Usage:
 
 ```bash
-# Generate bytecode and abi files for contract
-solc -o . --bin --abi bin/block_generator/contracts/counter.sol
 # Generate CLI config with server endpoint, private key and wallet address
-./bin/block_generator/block_generator.py --mode make-config --config-name test_config.yaml
-# Deploy and call the contract
-./bin/block_generator/block_generator.py --mode generate-blocks --config-name test_config.yaml --contract-binary SimpleStorage.bin --method-name increment
+./bin/block_generator/block_generator.py --mode make-config --cli-config-name test_config.yaml
+# Generate transactions described in config file
+./bin/block_generator/block_generator.py --mode generate-blocks --cli-config-name test_config.yaml --block-config-name bin/block_generator/example_data/block_config.json
 ```
+
+Config file format:
+
+```json
+{
+    "contracts" : [
+        {
+            "id": 1,
+            "path": "path/to/solidity/contract"
+        },
+        ...
+    ],
+
+    "transactions" : [
+        {
+            "contractId" : 1, // index of the deployed contract
+            "methodName" : "methodToCall", // name of a method in the contract
+            "callArguments": [  // Optional arguments for the method
+                "0x123456"
+            ]
+        },
+        ...
+    ]
+}
+```
+
+To deploy and call contracts manually use [nil_cli](https://github.com/NilFoundation/nil/README.md) directly.
 
 ### Human-readable assignments
 
