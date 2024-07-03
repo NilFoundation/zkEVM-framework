@@ -4,67 +4,47 @@
 #include <boost/endian.hpp>
 #include <boost/endian/conversion.hpp>
 #include <cstring>
-#include <evmc/evmc.hpp>
 #include <fstream>
-#include <iostream>
 
 #include "state_schema.def"
+#include "zkevm_framework/assigner_runner/utils.hpp"
+#include "zkevm_framework/core/types/account.hpp"
+#include "zkevm_framework/core/types/node.hpp"
 #include "zkevm_framework/json_helpers/json_helpers.hpp"
 
-// Transform hex string into Address or bytes
-template<typename OutputContainer>
-static void get_bytes(const boost::json::value hex_value, OutputContainer &result) {
-    std::vector<uint8_t> bytes = json_helpers::get_bytes(hex_value);
-    if constexpr (std::is_same_v<OutputContainer, evmc::address>) {
-        std::copy(bytes.begin(), bytes.end(), result.bytes);
-    } else if constexpr (std::is_same_v<OutputContainer, evmc::bytes32>) {
-        size_t zero_padding = 32 - bytes.size();
-        std::memset(result.bytes, 0, zero_padding);
-        std::copy(bytes.begin(), bytes.end(), result.bytes + zero_padding);
-    } else {
-        // Store the data of a transaction, could be any size
-        result.clear();
-        for (uint8_t b : bytes) {
-            result.push_back(b);
-        }
+static std::optional<std::string> handle_code(std::string &code_str, evmc::account &account) {
+    if (auto parse_err = json_helpers::to_bytes(code_str, account.code)) {
+        return "Parsing get code response is failed: " + parse_err.value();
     }
+    return {};
 }
 
-static void handle_storage(const boost::json::array &storage_json, evmc::account &account) {
+static std::optional<std::string> handle_storage(const boost::json::array &storage_json,
+                                                 evmc::account &account) {
     auto &storage = account.storage;
     for (const auto &item : storage_json) {
         const boost::json::object &storage_elem = item.as_object();
-        evmc::bytes32 key, value;
-        for (const auto &elem : storage_elem) {
-            if (elem.key() == "key") {
-                get_bytes(elem.value(), key);
-            } else if (elem.key() == "value") {
-                get_bytes(elem.value(), value);
-            }
-        }
+        const auto key_str = storage_elem.at("Key").as_string().c_str();
+        const auto val_str = storage_elem.at("Val").as_string().c_str();
+        evmc::bytes32 key = to_uint256be(intx::from_string<intx::uint256>(key_str));
+        evmc::bytes32 value = to_uint256be(intx::from_string<intx::uint256>(val_str));
         storage.emplace(key, value);
     }
+    return {};
 }
 
-static void handle_account(const boost::json::object &account_obj, evmc::account &account) {
-    for (const auto &elem : account_obj) {
-        if (elem.key() == "balance") {
-            size_t balance_value = json_helpers::get_number(elem.value());
-            // Convert to big endian number as it required in evmc
-            boost::endian::native_to_big_inplace(balance_value);
-            // Set last bytes with balance value and others with zeros
-            constexpr size_t zero_padding = sizeof(account.balance.bytes) - sizeof(balance_value);
-            std::memcpy(account.balance.bytes + zero_padding, &balance_value,
-                        sizeof(balance_value));
-            std::memset(account.balance.bytes, 0, zero_padding);
-        } else if (elem.key() == "address") {
-            // Already processed
-        } else if (elem.key() == "code") {
-            get_bytes(elem.value(), account.code);
-        } else if (elem.key() == "storage") {
-            handle_storage(elem.value().as_array(), account);
-        }
+static std::optional<std::string> handle_account(std::string &contract_str, evmc::account &account,
+                                                 evmc::address &address) {
+    core::types::SmartContract contract;
+    std::vector<std::byte> contract_data;
+    auto parse_err = json_helpers::to_std_bytes(contract_str, contract_data);
+    if (parse_err) {
+        return "Parse contract failed: \n\t" + parse_err.value();
     }
+    contract = ssz::deserialize<core::types::SmartContract>(contract_data);
+    account.balance = to_uint256be(contract.m_balance.m_value);
+    address = to_evmc_address(contract.m_address);
+    return {};
 }
 
 std::optional<std::string> init_account_storage(evmc::accounts &account_storage,
@@ -87,10 +67,23 @@ std::optional<std::string> init_account_storage(evmc::accounts &account_storage,
     const auto &account_array = config_json->as_object().at("accounts").as_array();
     for (const auto &item : account_array) {
         const boost::json::object &account_json = item.as_object();
+        evmc::account account;
         evmc::address account_address;
-        get_bytes(account_json.at("address"), account_address);
-        account_storage.emplace(account_address, evmc::account());
-        handle_account(account_json, account_storage.at(account_address));
+        std::string code_str = account_json.at("code").as_string().c_str();
+        auto parse_err = handle_code(code_str, account);
+        if (parse_err) {
+            return "Parse code failed: \n\t" + parse_err.value();
+        }
+        std::string contract_str = account_json.at("contract").as_string().c_str();
+        parse_err = handle_account(contract_str, account, account_address);
+        if (parse_err) {
+            return "Parse account failed: \n\t" + parse_err.value();
+        }
+        parse_err = handle_storage(account_json.at("storage").as_array(), account);
+        if (parse_err) {
+            return "Parse storage failed: \n\t" + parse_err.value();
+        }
+        account_storage[account_address] = account;
     }
     return {};
 }
@@ -102,4 +95,30 @@ std::optional<std::string> init_account_storage(evmc::accounts &account_storage,
         return "Could not open the account storage config: '" + account_storage_config_name + "'";
     }
     return init_account_storage(account_storage, asc_stream);
+}
+
+std::optional<std::string> load_account_with_storage(evmc::account &account,
+                                                     std::istream &account_data) {
+    auto account_json = json_helpers::parse_json(account_data);
+    if (!account_json) {
+        return "Error while parsing accounts data: " + account_json.error();
+    }
+    std::string code_str = account_json.value().at("result").at("code").as_string().c_str();
+    auto parse_err = handle_code(code_str, account);
+    if (parse_err) {
+        return "Parse code failed: \n\t" + parse_err.value();
+    }
+
+    std::string contract_str = account_json.value().at("result").at("contract").as_string().c_str();
+    evmc::address address;
+    parse_err = handle_account(contract_str, account, address);
+    if (parse_err) {
+        return "Parse account failed: \n\t" + parse_err.value();
+    }
+
+    parse_err = handle_storage(account_json.value().at("result").at("storage").as_array(), account);
+    if (parse_err) {
+        return "Parse account failed: \n\t" + parse_err.value();
+    }
+    return {};
 }

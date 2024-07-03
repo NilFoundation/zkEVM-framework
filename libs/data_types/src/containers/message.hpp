@@ -10,6 +10,48 @@
 
 namespace data_types {
     namespace containers {
+        struct MessageContainer : ssz::ssz_container {
+            uint8_t m_flags;
+            uint64_t m_chainId;
+            uint64_t m_seqno;
+            uint64_t m_gasPrice;
+            uint64_t m_gasLimit;
+            Address m_from;
+            Address m_to;
+            Address m_refundTo;
+            Address m_bounceTo;
+            uint64_t m_value;
+            CurrencyBalance m_currency;
+            ssz::list<std::byte, 3072> m_code;
+            Signature m_signature;
+
+            SSZ_CONT(m_flags, m_chainId, m_seqno, m_gasPrice, m_gasLimit, m_from, m_to, m_refundTo,
+                     m_bounceTo, m_value, m_currency, m_code, m_signature)
+
+            MessageContainer() {}
+
+            MessageContainer(const Message& msg)
+                : m_flags(msg.m_flags),
+                  m_chainId(msg.m_chainId),
+                  m_seqno(msg.m_seqno),
+                  m_gasPrice(msg.m_gasPrice),
+                  m_gasLimit(msg.m_gasLimit),
+                  m_from(msg.m_from),
+                  m_to(msg.m_to),
+                  m_refundTo(msg.m_refundTo),
+                  m_bounceTo(msg.m_bounceTo),
+                  m_value(msg.m_value),
+                  m_currency(msg.m_currency),
+                  m_code(msg.m_code),
+                  m_signature(msg.m_signature) {}
+
+            operator Message() const {
+                return Message(static_cast<Message::Type>(m_flags), m_chainId, m_seqno, m_gasPrice,
+                               m_gasLimit, m_from, m_to, m_refundTo, m_bounceTo, m_value,
+                               m_currency, m_code.data(), m_signature);
+            }
+        };
+
         struct CommonMsgInfoContainer : ssz::ssz_container {
             Address m_src;
             Address m_dst;

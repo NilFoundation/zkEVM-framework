@@ -14,44 +14,41 @@ namespace data_types {
     namespace containers {
         struct BlockContainer : ssz::ssz_variable_size_container {
             ssz::list<AccountBlockContainer, 100> m_accountBlocks;
-            ssz::list<InMsgContainer, 100> m_inputMsgs;
-            ssz::list<OutMsgContainer, 100> m_outputMsgs;
-            BlockHeaderContainer m_previousBlock;
-            BlockHeaderContainer m_currentBlock;
+            uint64_t m_blockNumber;
+            SSZHash m_prevBlock;
+            SSZHash m_smartContractsRoot;
+            SSZHash m_inMessagesRoot;
+            SSZHash m_outMessagesRoot;
+            uint64_t m_outMessagesNum;
+            SSZHash m_receiptsRoot;
+            SSZHash m_childBlocksRootHash;
+            SSZHash m_masterChainHash;
+            Bloom m_logsBloom;
+            uint64_t m_timestamp;
 
-            SSZ_CONT(m_accountBlocks, m_inputMsgs, m_outputMsgs, m_previousBlock, m_currentBlock)
+            SSZ_CONT(m_blockNumber, m_prevBlock, m_smartContractsRoot, m_inMessagesRoot,
+                     m_outMessagesRoot, m_outMessagesNum, m_receiptsRoot, m_childBlocksRootHash,
+                     m_masterChainHash, m_logsBloom, m_timestamp)
 
             BlockContainer() {}
 
             BlockContainer(const Block& block)
-                : m_previousBlock(block.m_previousBlock), m_currentBlock(block.m_currentBlock) {
-                for (const AccountBlock& account_block : block.m_accountBlocks) {
-                    m_accountBlocks.push_back(AccountBlockContainer(account_block));
-                }
-                for (const InMsg& in_msg : block.m_inputMsgs) {
-                    m_inputMsgs.push_back(InMsgContainer(in_msg));
-                }
-                for (const OutMsg& out_msg : block.m_outputMsgs) {
-                    m_outputMsgs.push_back(OutMsgContainer(out_msg));
-                }
-            }
+                : m_blockNumber(block.m_blockNumber),
+                  m_prevBlock(block.m_prevBlock),
+                  m_smartContractsRoot(block.m_smartContractsRoot),
+                  m_inMessagesRoot(block.m_inMessagesRoot),
+                  m_outMessagesRoot(block.m_outMessagesRoot),
+                  m_outMessagesNum(block.m_outMessagesNum),
+                  m_receiptsRoot(block.m_receiptsRoot),
+                  m_childBlocksRootHash(block.m_childBlocksRootHash),
+                  m_masterChainHash(block.m_masterChainHash),
+                  m_logsBloom(block.m_logsBloom),
+                  m_timestamp(block.m_timestamp) {}
 
             operator Block() const {
-                MPTNode<AccountBlock> accountBlocks;
-                for (const AccountBlockContainer& account_block : m_accountBlocks) {
-                    accountBlocks.push_back(static_cast<AccountBlock>(account_block));
-                }
-                MPTNode<InMsg> inputMsgs;
-                for (const InMsgContainer& in_msg : m_inputMsgs) {
-                    inputMsgs.push_back(static_cast<InMsg>(in_msg));
-                }
-                MPTNode<OutMsg> outputMsgs;
-                for (const OutMsgContainer& out_msg : m_outputMsgs) {
-                    outputMsgs.push_back(static_cast<OutMsg>(out_msg));
-                }
-                return Block(accountBlocks, inputMsgs, outputMsgs,
-                             static_cast<BlockHeader>(m_previousBlock),
-                             static_cast<BlockHeader>(m_currentBlock));
+                return Block(m_blockNumber, m_prevBlock, m_smartContractsRoot, m_inMessagesRoot,
+                             m_outMessagesRoot, m_outMessagesNum, m_receiptsRoot,
+                             m_childBlocksRootHash, m_masterChainHash, m_logsBloom, m_timestamp);
             }
         };
     }  // namespace containers

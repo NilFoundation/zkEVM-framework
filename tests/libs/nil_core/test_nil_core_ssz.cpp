@@ -64,6 +64,7 @@ TEST(NilCoreSSZTests, Block) {
     x.m_receipts_root = {std::byte{0x11}};
     x.m_smart_contracts_root = {std::byte{0x22}};
     x.m_timestamp = 44;
+    x.m_gasPrice = Value{m_value : 100};
     test_serialization(x);
 }
 
@@ -89,33 +90,34 @@ TEST(NilCoreSSZTests, Log) {
 
 TEST(NilCoreSSZTests, Message) {
     Message x{};
-    x.m_bounce_to = {std::byte{0xAA}};
+    x.m_flags = 0b10101010;
     x.m_chain_id = 42;
+    x.m_bounce_to = {std::byte{0xAA}};
+    x.m_seqno = 47;
+    x.m_feeCredit = Value{m_value : 2000000};
+    x.m_from = {std::byte{0xEE}};
+    x.m_to = {std::byte{0x22}};
+    x.m_refund_to = {std::byte{0xFF}};
+    x.m_bounce_to = {std::byte{0xFF}};
+    x.m_value = Value{m_value : 100};
     x.m_currency = std::vector{CurrencyBalance{}, CurrencyBalance{}};
     x.m_currency[0].m_balance = Value{m_value : 43};
     x.m_currency[0].m_currency = {std::byte{0xBB}};
     x.m_currency[1].m_balance = Value{m_value : 44};
     x.m_currency[1].m_currency = {std::byte{0xCC}};
     x.m_data = {{std::vector{std::byte{0xDD}, std::byte{0xDD}, std::byte{0xDD}}}};
-    x.m_flags = 0b10101010;
-    x.m_from = {std::byte{0xEE}};
-    x.m_gas_limit = 45;
-    x.m_gas_price = Value{m_value : 46};
-    x.m_refund_to = {std::byte{0xFF}};
-    x.m_seqno = 47;
     x.m_signature = {{std::vector{std::byte{0x11}, std::byte{0x11}, std::byte{0x11}}}};
-    x.m_to = {std::byte{0x22}};
     test_serialization(x);
 }
 
 TEST(NilCoreSSZTests, ExternalMessage) {
     ExternalMessage x{};
-    x.m_auth_data = {{std::vector{std::byte{0xAA}, std::byte{0xAA}, std::byte{0xAA}}}};
-    x.m_chain_id = 42;
-    x.m_data = {{std::vector{std::byte{0xBB}, std::byte{0xBB}, std::byte{0xBB}}}};
     x.m_kind = static_cast<std::uint8_t>(MessageKind::Deploy);
-    x.m_seqno = 43;
     x.m_to = {std::byte{0xCC}};
+    x.m_chain_id = 42;
+    x.m_seqno = 43;
+    x.m_data = {{std::vector{std::byte{0xBB}, std::byte{0xBB}, std::byte{0xBB}}}};
+    x.m_auth_data = {{std::vector{std::byte{0xAA}, std::byte{0xAA}, std::byte{0xAA}}}};
     test_serialization(x);
 }
 

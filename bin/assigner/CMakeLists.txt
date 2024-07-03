@@ -19,7 +19,6 @@ target_link_libraries(${TARGET_NAME}
     PRIVATE
     evm-assigner::evm-assigner
     zkEVMAssignerRunner
-    zkEVMDataTypes
     zkEVMJsonHelpers
     zkEVMOutputArtifacts
     Boost::program_options
