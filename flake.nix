@@ -19,8 +19,8 @@
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
         nix-3rdparty.follows = "nix-3rdparty";
-        nil_crypto3.follows = "nil-crypto3";
-        nil_zkllvm_blueprint.follows = "nil-zkllvm-blueprint";
+        nil-crypto3.follows = "nil-crypto3";
+        nil-zkllvm-blueprint.follows = "nil-zkllvm-blueprint";
       };
     };
     nil-cluster = {
@@ -46,7 +46,7 @@
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
-        nil_crypto3.follows = "nil-crypto3";
+        nil-crypto3.follows = "nil-crypto3";
       };
     };
   };
@@ -67,9 +67,9 @@
         overlays = [ nix-3rdparty.overlays.${system}.default ];
         inherit system;
       };
-      evm_assigner_pkgs = nil-evm-assigner.packages.${system};
-      evm_assigner = { enableDebug ? false }:
-        if enableDebug then evm_assigner_pkgs.debug else evm_assigner_pkgs.default;
+      evm-assigner-pkgs = nil-evm-assigner.packages.${system};
+      evm-assigner = { enableDebug ? false }:
+        if enableDebug then evm-assigner-pkgs.debug else evm-assigner-pkgs.default;
 
       crypto3 = nil-crypto3.packages.${system}.default;
       blueprint = nil-zkllvm-blueprint.packages.${system}.default;
@@ -93,7 +93,7 @@
         (pkgs.sszpp.override { inherit enableDebug; })
         (pkgs.evmc.override { inherit enableDebug; })
         # Repo dependencies
-        (evm_assigner { inherit enableDebug; })
+        (evm-assigner { inherit enableDebug; })
         crypto3
         blueprint
         # Blueprint will propagate Boost library.

@@ -24,13 +24,13 @@ TEST(runner_test, check_block) {
     using ArithmetizationType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
     std::vector<std::array<std::size_t, 4>> column_sizes = {{
-                                                                15,  // witness
+                                                                65,  // witness
                                                                 1,   // public_input
                                                                 5,   // constants
                                                                 30   // selectors
                                                             },
                                                             {
-                                                                15,  // witness
+                                                                65,  // witness
                                                                 1,   // public_input
                                                                 5,   // constants
                                                                 30   // selectors
@@ -39,7 +39,7 @@ TEST(runner_test, check_block) {
     evmc::accounts account_storage;
     auto init_err = init_account_storage(account_storage, STATE_CONFIG);
     ASSERT_FALSE(init_err.has_value());
-    single_thread_runner<BlueprintFieldType> runner(account_storage, column_sizes,
+    single_thread_runner<BlueprintFieldType> runner(account_storage, column_sizes, "",
                                                     boost::log::trivial::severity_level::debug);
     auto run_err = runner.fill_assignments(input_block);
     ASSERT_FALSE(run_err.has_value());
