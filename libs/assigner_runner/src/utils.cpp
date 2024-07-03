@@ -1,6 +1,6 @@
 #include "zkevm_framework/assigner_runner/utils.hpp"
 
-#include <evmc/evmc.h>
+#include <evmc.h>
 
 #include <cstdint>
 #include <fstream>
@@ -8,26 +8,36 @@
 #include <iostream>
 #include <sstream>
 
-evmc_call_kind evmc_msg_kind(const data_types::Transaction::Type& type) {
-    switch (type) {
-        case data_types::Transaction::Type::ContractCreation:
-            return EVMC_CREATE;
-        case data_types::Transaction::Type::MessageCall:
-            return EVMC_CALL;
-        default:
-            return EVMC_CALL;
-    };
+#include "zkevm_framework/core/types/message.hpp"
+
+evmc_call_kind evmc_msg_kind(const std::bitset<8>& type) {
+    if (type.test(std::size_t(core::types::MessageKind::Deploy))) {
+        return EVMC_CREATE;
+    } else if (type.test(std::size_t(core::types::MessageKind::Internal))) {
+        return EVMC_CALL;
+    } else {
+        return EVMC_CALL;
+    }
 }
 
-evmc_address to_evmc_address(const data_types::Address& v) {
+evmc_address to_evmc_address(const core::types::Address& v) {
     evmc_address res = {
-        v[0],  v[1],  v[2],  v[3],  v[4],  v[5],  v[6],  v[7],  v[8],  v[9],
-        v[10], v[11], v[12], v[13], v[14], v[15], v[16], v[17], v[18], v[19],
+        std::to_integer<uint8_t>(v[0]),  std::to_integer<uint8_t>(v[1]),
+        std::to_integer<uint8_t>(v[2]),  std::to_integer<uint8_t>(v[3]),
+        std::to_integer<uint8_t>(v[4]),  std::to_integer<uint8_t>(v[5]),
+        std::to_integer<uint8_t>(v[6]),  std::to_integer<uint8_t>(v[7]),
+        std::to_integer<uint8_t>(v[8]),  std::to_integer<uint8_t>(v[9]),
+        std::to_integer<uint8_t>(v[10]), std::to_integer<uint8_t>(v[11]),
+        std::to_integer<uint8_t>(v[12]), std::to_integer<uint8_t>(v[13]),
+        std::to_integer<uint8_t>(v[14]), std::to_integer<uint8_t>(v[15]),
+        std::to_integer<uint8_t>(v[16]), std::to_integer<uint8_t>(v[17]),
+        std::to_integer<uint8_t>(v[18]), std::to_integer<uint8_t>(v[19]),
     };
     return res;
 }
 
-static std::string byte_array_to_str(const uint8_t* data, size_t size) {
+template<typename T>
+static std::string byte_array_to_str(const T* data, size_t size) {
     std::stringstream os;
     os << std::hex << "0x";
     for (int i = 0; i < size; ++i) {
@@ -38,25 +48,24 @@ static std::string byte_array_to_str(const uint8_t* data, size_t size) {
 
 std::string to_str(const evmc_address& v) { return byte_array_to_str(v.bytes, sizeof(v.bytes)); }
 
-std::string to_str(const data_types::Address& v) { return byte_array_to_str(v.data(), v.size()); }
+std::string to_str(const core::types::Address& v) { return byte_array_to_str(v.data(), v.size()); }
 
 std::string to_str(const evmc_bytes32& v) { return byte_array_to_str(v.bytes, sizeof(v.bytes)); }
+
+std::string to_str(const core::Hash& v) { return byte_array_to_str(v.data(), v.size()); }
 
 std::string to_str(const std::vector<uint8_t>& code) {
     return byte_array_to_str(code.data(), code.size());
 }
 
-std::string to_str(const data_types::Transaction::Type& type) {
-    switch (type) {
-        case data_types::Transaction::Type::NullTransaction:
-            return "NullTransaction";
-        case data_types::Transaction::Type::ContractCreation:
-            return "ContractCreation";
-        case data_types::Transaction::Type::MessageCall:
-            return "MessageCall";
-        default:
-            return "none";
-    };
+std::string to_str(const std::bitset<8>& type) {
+    if (type.test(std::size_t(core::types::MessageKind::Deploy))) {
+        return "EVMC_CREATE";
+    } else if (type.test(std::size_t(core::types::MessageKind::Internal))) {
+        return "EVMC_CALL";
+    } else {
+        return "unknown message type";
+    }
 }
 
 std::string to_str(evmc_status_code code) {

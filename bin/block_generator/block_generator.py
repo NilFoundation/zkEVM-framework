@@ -5,6 +5,7 @@ from contextlib import contextmanager
 import hashlib
 import json
 import jsonschema
+import requests
 import logging
 from pathlib import Path
 import random
@@ -18,7 +19,7 @@ from typing import Dict
 class ClusterProcess:
     def __init__(self):
         logging.info("Launching nil cluster")
-        self.process = subprocess.Popen(["nil", "run"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.process = subprocess.Popen(["nild", "run"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         # TODO: Ensure that the server is up at the time of a first request
         sleep(4)
     def shutdown(self):
@@ -35,10 +36,11 @@ class ClusterProcess:
 # Interface for usage of nil_cli
 class NilCLI:
     def __init__(self, cli_config_name=None):
+        self.endpoint = "http://127.0.0.1:8529"
         self.config_path = cli_config_name
 
     def run_cli(self, args: list[str], pattern=None) -> str:
-        full_arg_list = ["nil_cli"]
+        full_arg_list = ["nil"]
         if self.config_path is not None:
             full_arg_list += ["-c", self.config_path]
         full_arg_list += args
@@ -67,10 +69,9 @@ class NilCLI:
         return self.run_cli(["wallet", "new"], pattern=wallet_pattern)
 
     def init_config(self, path: str):
-        endpoint = "http://127.0.0.1:8529"
         self.config_path = path
         self.run_cli(["config", "init"])
-        self.run_cli(["config", "set", "rpc_endpoint", endpoint])
+        self.run_cli(["config", "set", "rpc_endpoint", self.endpoint])
 
     def keygen(self) -> str:
         return self.run_cli(["keygen", "new"])
@@ -91,6 +92,15 @@ class NilCLI:
         call_args += ["--abi", abi_file]
         #call_args += ["--no-wait"] # force put transaction into the one block
         return self.run_cli(call_args, pattern=message_pattern)
+
+    def send_request(self, method: str, params):
+        body = {"id":1,"jsonrpc":"2.0","method":method,"params":params}
+        response = requests.post(self.endpoint, json = body)
+        if response.status_code != 200:
+            raise RuntimeError("Wrong response code: " + str(response.status_code))
+        response_json = response.json()
+        logging.debug(response_json)
+        return response_json["result"]
 
 # Remove directory recursively
 def rmtree(f: Path):
@@ -185,7 +195,7 @@ def submit_transactions(cli: NilCLI, contract_map: Dict[int, Contract], transact
     return last_message_hash, last_called_contract
 
 # extract block hash and shard id for submitted message
-def get_block_hash(cli: NilCLI, message_hash: str, called_contract: str) -> tuple[str, str]:
+def get_block_hash(cli: NilCLI, message_hash: str, called_contract: str) -> tuple[int, str]:
     if message_hash is None:
             raise ValueError(f"Message hash is empty")
     receipt_str = cli.run_cli(["receipt", message_hash])
@@ -208,14 +218,17 @@ def get_block_hash(cli: NilCLI, message_hash: str, called_contract: str) -> tupl
     if target_receipt is None:
         raise RuntimeError("Receipt for the last execution message is not found")
 
-    return str(target_receipt["shardId"]), target_receipt["blockHash"]
+    return target_receipt["shardId"], target_receipt["blockHash"]
 
 # extract block by hash and shard id
-def extract_block(cli: NilCLI, shard_id: str, block_hash: str):
-    block_str = cli.run_cli(["block", block_hash, "--shard-id", shard_id])
-    block_str = re.split("Block data: ", block_str)[1]
-    block_json = json.loads(block_str)
+def extract_block(cli: NilCLI, shard_id, block_hash: str):
+    block_json = cli.send_request("eth_getBlockByHash", [shard_id, block_hash, True])
     return block_json
+
+# extract state by block hash and address
+def extract_state(cli: NilCLI, address: str, block_hash: str):
+    state_json = cli.send_request("debug_getContract", [address, block_hash])
+    return state_json
 
 # Load json and validate it via schema
 def validate_json(file_path: str, schema_path: str):
@@ -227,8 +240,8 @@ def validate_json(file_path: str, schema_path: str):
     return config_json
 
 
-# Deploy the contract and generate transactions by calling it
-def generate_block(block_config: str, cli_config_name: str, legacy_config_name):
+# Deploy the contract and generate transactions by calling it, write block which includes these transactions and correspondend state to the files
+def generate_block(block_config: str, cli_config_name: str, output_block_file_name: str, output_state_file_name: str):
     # Get schema file by relative path
     module_path = Path(__file__).resolve()
     schema_path = module_path.parent / "resources" / "block_schema.json"
@@ -250,103 +263,31 @@ def generate_block(block_config: str, cli_config_name: str, legacy_config_name):
             last_message_hash, last_called_contract = submit_transactions(cli, contracts, config_json["transactions"])
             (shard_id, block_hash) = get_block_hash(cli, last_message_hash, last_called_contract.address)
 
-            # Generate legacy config files with block and state if requested (to be removed)
-            if legacy_config_name is not None:
-                # Read contract code from the file
-                with open(last_called_contract.bin) as code_file:
-                    contract_code = code_file.readlines()[0].strip()
+            get_block_by_hash(cli, shard_id, block_hash, output_block_file_name)
 
-                # Write state config
-                state_config = legacy_state_config(last_called_contract.address, cli.wallet_address(), contract_code)
-                with open(legacy_config_name + ".state", 'w') as sf:
-                    json.dump(state_config, sf)
-
-                # Write block config
-                block_json = extract_block(cli, shard_id, block_hash)
-                block_config = legacy_block_config(block_json)
-                with open(legacy_config_name + ".block", 'w') as bf:
-                    json.dump(block_config, bf)
+            get_state_by_block_hash(cli, str(last_called_contract.address), block_hash, output_state_file_name)
 
 
     print("ShardId = " + str(shard_id))
     print("BlockHash = " + block_hash)
 
-# Generate block config in legacy format (to be removed)
-def legacy_block_config(true_block):
-    block_header = {}
-    dumb_address = "0x0000000000000000000000000000000000000005"
-    block_header["parent_hash"] = 0
-    block_header["number"] = 1
-    block_header["gas_limit"] = 2
-    block_header["gas_used"] = 3
-    block_header["coinbase"] = dumb_address
-    block_header["prevrandao"] = 4
-    block_header["chain_id"] = 1
-    block_header["basefee"] = 55
-    block_header["blob_basefee"] = 55
-    block_header["timestamp"] = 5
-
-    transaction_template = {}
-    transaction_template["type"] = "MessageCall"
-    transaction_template["nonce"] = 0
-
-    block = {}
-    block["previous_header"] = block_header
-    block["current_header"] = block_header
-    block["account_blocks"] = []
-    block["transactions"] = []
-    block["input_messages"] = []
-    block["output_messages"] = []
-
-    transaction_id = 0
-    for msg in true_block["messages"]:
-        legacy_msg = {}
-        legacy_msg["src"] = msg["from"]
-        legacy_msg["dst"] = msg["to"]
-        legacy_msg["value"] = int(msg["value"])
-        legacy_msg["transaction"] = transaction_id
-
-        legacy_transaction = transaction_template.copy()
-        legacy_transaction["id"] = transaction_id
-        legacy_transaction["value"] = int(msg["value"])
-        legacy_transaction["receive_address"] = msg["to"]
-        legacy_transaction["sender"] = msg["from"]
-        legacy_transaction["gas_price"] = int(msg["gasPrice"])
-        legacy_transaction["gas"] = int(msg["gasUsed"])
-        legacy_transaction["data"] = msg["data"]
-
-        block["input_messages"].append(legacy_msg)
-        block["transactions"].append(legacy_transaction)
-        transaction_id += 1
-
-    return block
-
-# Generate account storage state config in legacy format (to be removed)
-def legacy_state_config(contract_address: str, wallet_address: str, contract_code: str):
-    state_config = {"accounts": []}
-    contract_desc = {
-        "address": contract_address.lower(),
-        "balance": 0,
-        "code": "0x" + contract_code
-    }
-    state_config["accounts"].append(contract_desc)
-
-    wallet_desc = {
-        "address": wallet_address.lower(),
-        "balance": 1000000 # Some big value, not meaningful for the test
-    }
-    state_config["accounts"].append(wallet_desc)
-    return state_config
-
-
-
 # Write block to file
-def write_block_to_file(shard_id: str, block_hash: str, block_file_name: str, cli_config_name: str):
-    with ClusterProcess():
-        cli = NilCLI(cli_config_name)
-        block_json = extract_block(cli, shard_id, block_hash)
+def get_block_by_hash(cli, shard_id, block_hash: str, block_file_name: str):
+    block_json = extract_block(cli, shard_id, block_hash)
+    # Write block to the file
+    if block_file_name is not None:
         with open(block_file_name, 'w') as f:
             json.dump(block_json, f)
+
+# Write state to file
+def get_state_by_block_hash(cli: NilCLI, address: str, block_hash: str, state_file_name: str):
+    state_json = extract_state(cli, address, block_hash)
+    accounts = {}
+    accounts["accounts"] = [state_json]
+    # Write state to the file
+    if state_file_name is not None:
+        with open(state_file_name, 'w') as f:
+            json.dump(accounts, f)
 
 # Initialize CLI config with endpoint, private key and new wallet address (on main shard)
 def make_config(path: str):
@@ -363,10 +304,11 @@ def make_config(path: str):
 def parse_arguments():
     parser = argparse.ArgumentParser(prog="Nil block generator",
                                     description="Tool for contract deployment and creating transactions to generate new blocks")
-    parser.add_argument("--mode", choices=["make-config", "generate-block", "write-file"],required=True, help="mode")
+    parser.add_argument("--mode", choices=["make-config", "generate-block"],required=True, help="mode")
     parser.add_argument("--cli-config-name", help="NIL CLI extra config name describing additional wollets")
     parser.add_argument("-b", "--block-config-name", help="Block config name describing transactions")
     parser.add_argument("-o", "--block-output-name", help="Block output file name")
+    parser.add_argument("-s", "--state-output-name", help="State output file name")
     parser.add_argument("--shard-id", help="Shard ID")
     parser.add_argument("--block-hash", help="Block Hash")
     parser.add_argument("-l", "--generated-legacy-configs", help="Legacy config output (to be removed)")
@@ -381,10 +323,6 @@ def parse_arguments():
     if args.mode == "generate-block":
         if args.block_config_name is None:
             raise ValueError("--block-config-name argument must be passed for 'generate-blocks' mode")
-    # Extra checks for 'write ile' mode
-    if args.mode == "write-file":
-        if (args.block_output_name is None or args.shard_id is None or args.block_hash is None):
-            raise ValueError("--block-output-name, --shard-id, --block-hash arguments must be passed for 'write-file' mode")
     return args
 
 if __name__ == "__main__":
@@ -396,8 +334,6 @@ if __name__ == "__main__":
     if args.mode == "make-config":
         make_config(args.cli_config_name)
     elif args.mode == "generate-block":
-        generate_block(args.block_config_name, args.cli_config_name, args.generated_legacy_configs)
-    elif args.mode == "write-file":
-        write_block_to_file(args.shard_id, args.block_hash, args.block_output_name, args.cli_config_name)
+        generate_block(args.block_config_name, args.cli_config_name, args.block_output_name, args.state_output_name)
     else:
         raise ValueError("Unknown mode")

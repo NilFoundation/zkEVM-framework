@@ -27,15 +27,11 @@
 #include "assigner.hpp"
 #include "checks.hpp"
 #include "zkevm_framework/assigner_runner/runner.hpp"
-#include "zkevm_framework/assigner_runner/state_parser.hpp"
-#include "zkevm_framework/assigner_runner/utils.hpp"
-#include "zkevm_framework/data_types/account.hpp"
-#include "zkevm_framework/data_types/block.hpp"
-#include "zkevm_framework/data_types/transaction.hpp"
 
 template<typename BlueprintFieldType>
-int curve_dependent_main(const std::string& input_block_file_name,
-                         const std::string& account_storage_config_name,
+int curve_dependent_main(uint64_t shardId, const std::string& blockHash,
+                         const std::string& block_file_name,
+                         const std::string& account_storage_file_name,
                          const std::string& assignment_table_file_name,
                          const std::optional<OutputArtifacts>& artifacts,
                          const std::string& target_circuit,
@@ -44,47 +40,26 @@ int curve_dependent_main(const std::string& input_block_file_name,
     using ArithmetizationType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
 
-    // init current account storage
-    evmc::accounts account_storage;
-    if (!account_storage_config_name.empty()) {
-        auto init_err = init_account_storage(account_storage, account_storage_config_name);
-        if (init_err) {
-            std::cerr << init_err.value() << std::endl;
-            return -1;
-        }
-    }
-
-    single_thread_runner<BlueprintFieldType> runner(column_sizes, account_storage, target_circuit,
+    single_thread_runner<BlueprintFieldType> runner(column_sizes, shardId, target_circuit,
                                                     log_level);
 
-    std::ifstream input_block_file(input_block_file_name.c_str(),
-                                   std::ios_base::binary | std::ios_base::in);
-    if (!input_block_file.is_open()) {
-        std::cerr << "Could not open the file - '" << input_block_file_name << "'" << std::endl;
-        return -1;
-    }
-    auto maybe_input_block = data_types::Block::deserialize(input_block_file);
-    if (!maybe_input_block.has_value()) {
-        std::cerr << "Could not read - '" << input_block_file_name << "'"
-                  << ": " << maybe_input_block.error() << std::endl;
-        input_block_file.close();
-        return -1;
-    }
-    auto input_block = maybe_input_block.value();
-    input_block_file.close();
-
-    std::optional<std::string> run_err =
-        runner.run(input_block, assignment_table_file_name, artifacts);
-    if (run_err.has_value()) {
-        std::cerr << "Assigner run failed: " << run_err.value() << std::endl;
+    auto err = runner.extract_block_with_messages(blockHash, block_file_name);
+    if (err) {
+        std::cerr << "Extract input block failed: " << err.value() << std::endl;
         return 1;
     }
 
-    /*TODO add checks of assignemt tables (is_satisfied, ...)
-    if (!check_assignment_tables()) {
-        std::cerr << "Check assignment tables failed" << std::endl;
+    err = runner.extract_accounts_with_storage(account_storage_file_name);
+    if (err) {
+        std::cerr << "Extract account storage failed: " << err.value() << std::endl;
         return 1;
-    }*/
+    }
+
+    err = runner.run(assignment_table_file_name, artifacts);
+    if (err.has_value()) {
+        std::cerr << "Assigner run failed: " << err.value() << std::endl;
+        return 1;
+    }
 
     // Check if bytecode table is satisfied to the bytecode constraints
     auto& bytecode_table =
@@ -117,8 +92,9 @@ int main(int argc, char* argv[]) {
                                                                                    "Format is --columns <name>N|N-|-N|N-M(,N|N-|-N|N-M)*, where <name> is public_input|witness|constant|selector."
                                                                                    "If not specified, outputs all columns. "
                                                                                    "May be provided multiple times with different column types")
-            ("input-assignment-tables,i", boost::program_options::value<std::string>(), "Assignment table input files")
-            ("input-block,b", boost::program_options::value<std::string>(), "Block input files")
+            ("shard-id", boost::program_options::value<uint64_t>(), "ID of the shard where executed block")
+            ("block-hash", boost::program_options::value<std::string>(), "Hash of the input block")
+            ("block-file,b", boost::program_options::value<std::string>(), "Predefined input block with messages")
             ("account-storage,s", boost::program_options::value<std::string>(), "Account storage config file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
             ("target-circuit", boost::program_options::value<std::string>(), "Fill assignment table only for one circuit (bytecode, rw)")
@@ -153,10 +129,11 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
+    uint64_t shardId = 0;
     std::string assignment_table_file_name;
-    std::string input_assignment_table_file_name;
-    std::string input_block_file_name;
-    std::string account_storage_config_name;
+    std::string blockHash;
+    std::string block_file_name;
+    std::string account_storage_file_name;
     std::string elliptic_curve;
     std::string target_circuit;
     std::string log_level;
@@ -170,6 +147,36 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    if (vm.count("block-file")) {
+        block_file_name = vm["block-file"].as<std::string>();
+    } else {
+        block_file_name = "";
+        if (vm.count("shard-id")) {
+            shardId = vm["shard-id"].as<uint64_t>();
+        } else {
+            std::cerr << "Invalid command line argument - shard-id or block-file must be specified"
+                      << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+
+        if (vm.count("block-hash")) {
+            blockHash = vm["block-hash"].as<std::string>();
+        } else {
+            std::cerr
+                << "Invalid command line argument - block-hash or block-file must be specified"
+                << std::endl;
+            std::cout << options_desc << std::endl;
+            return 1;
+        }
+    }
+
+    if (vm.count("account-storage")) {
+        account_storage_file_name = vm["account-storage"].as<std::string>();
+    } else {
+        account_storage_file_name = "";
+    }
+
     std::optional<OutputArtifacts> artifacts = std::nullopt;
     if (vm.count("output-text")) {
         auto maybe_artifacts = OutputArtifacts::from_program_options(vm);
@@ -179,25 +186,6 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         artifacts = maybe_artifacts.value();
-    }
-
-    if (vm.count("input-assignment-tables")) {
-        input_assignment_table_file_name = vm["input-assignment-tables"].as<std::string>();
-    } else {
-        input_assignment_table_file_name = "";
-    }
-
-    if (vm.count("input-block")) {
-        input_block_file_name = vm["input-block"].as<std::string>();
-    } else {
-        std::cerr << "Invalid command line argument - input block file name is not specified"
-                  << std::endl;
-        std::cout << options_desc << std::endl;
-        return 1;
-    }
-
-    if (vm.count("account-storage")) {
-        account_storage_config_name = vm["account-storage"].as<std::string>();
     }
 
     if (vm.count("elliptic-curve-type")) {
@@ -258,8 +246,9 @@ int main(int argc, char* argv[]) {
         case 0: {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::curves::pallas::base_field_type>(
-                input_block_file_name, account_storage_config_name, assignment_table_file_name,
-                artifacts, target_circuit, log_options[log_level], column_sizes);
+                shardId, blockHash, block_file_name, account_storage_file_name,
+                assignment_table_file_name, artifacts, target_circuit, log_options[log_level],
+                column_sizes);
             break;
         }
         case 1: {
@@ -273,8 +262,9 @@ int main(int argc, char* argv[]) {
         case 3: {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
-                input_block_file_name, account_storage_config_name, assignment_table_file_name,
-                artifacts, target_circuit, log_options[log_level], column_sizes);
+                shardId, blockHash, block_file_name, account_storage_file_name,
+                assignment_table_file_name, artifacts, target_circuit, log_options[log_level],
+                column_sizes);
             break;
         }
     };

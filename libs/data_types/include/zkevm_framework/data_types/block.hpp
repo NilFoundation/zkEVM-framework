@@ -20,20 +20,34 @@ namespace data_types {
     /// @brief Block.
     class Block {
       public:
-        MPTNode<AccountBlock> m_accountBlocks;
-        MPTNode<InMsg> m_inputMsgs;
-        MPTNode<OutMsg> m_outputMsgs;
-        BlockHeader m_previousBlock;
-        BlockHeader m_currentBlock;
+        uint64_t m_blockNumber;
+        SSZHash m_prevBlock;
+        SSZHash m_smartContractsRoot;
+        SSZHash m_inMessagesRoot;
+        SSZHash m_outMessagesRoot;
+        uint64_t m_outMessagesNum;
+        SSZHash m_receiptsRoot;
+        SSZHash m_childBlocksRootHash;
+        SSZHash m_masterChainHash;
+        Bloom m_logsBloom;
+        uint64_t m_timestamp;
 
-        Block(const MPTNode<AccountBlock> &accountBlocks, const MPTNode<InMsg> &inputMsgs,
-              const MPTNode<OutMsg> &outputMsgs, const BlockHeader &previousBlock,
-              const BlockHeader &currentBlock)
-            : m_accountBlocks(accountBlocks),
-              m_inputMsgs(inputMsgs),
-              m_outputMsgs(outputMsgs),
-              m_previousBlock(previousBlock),
-              m_currentBlock(currentBlock) {}
+        Block(uint64_t blockNumber, const SSZHash& prevBlock, const SSZHash& smartContractsRoot,
+              const SSZHash& inMessagesRoot, const SSZHash& outMessagesRoot,
+              uint64_t outMessagesNum, const SSZHash& receiptsRoot,
+              const SSZHash& childBlocksRootHash, const SSZHash& masterChainHash,
+              const Bloom& logsBloom, uint64_t timestamp)
+            : m_blockNumber(blockNumber),
+              m_prevBlock(prevBlock),
+              m_smartContractsRoot(smartContractsRoot),
+              m_inMessagesRoot(inMessagesRoot),
+              m_outMessagesRoot(outMessagesRoot),
+              m_outMessagesNum(outMessagesNum),
+              m_receiptsRoot(receiptsRoot),
+              m_childBlocksRootHash(childBlocksRootHash),
+              m_masterChainHash(masterChainHash),
+              m_logsBloom(logsBloom),
+              m_timestamp(timestamp) {}
 
         /// @brief Default constructor - zero initializer
         Block() {}
@@ -42,13 +56,13 @@ namespace data_types {
         std::expected<bytes, SerializationError> serialize() const noexcept;
 
         /// @brief write SSZ serialization to stream
-        std::expected<void, SerializationError> serialize(std::ostream &out) const noexcept;
+        std::expected<void, SerializationError> serialize(std::ostream& out) const noexcept;
 
         /// @brief deserizalize from SSZ
-        static std::expected<Block, SerializationError> deserialize(const bytes &src) noexcept;
+        static std::expected<Block, SerializationError> deserialize(const bytes& src) noexcept;
 
         /// @brief deserizalize from SSZ
-        static std::expected<Block, SerializationError> deserialize(std::istream &src) noexcept;
+        static std::expected<Block, SerializationError> deserialize(std::istream& src) noexcept;
     };
 }  // namespace data_types
 
