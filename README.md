@@ -4,13 +4,17 @@ Framework for test verification of state of cluster based on EVM
 
 ## Content
 
-* Message generator
+* Block generator
 * EVM assigner
-* Proof generator
+* Proof producer
 
 ### Libraries
 
-* `data_types` - definitions of data structures used for verification
+* `zkEVMDataTypes` - definitions of data structures used for verification
+* `zkEVMAssignerRunner` - provide interace for run EVM assigner
+* `zkEVMBlockGenerator` - provide interface for generate test blocks
+* `zkEVMJsonHelpers` - provide interface for process json configuration files
+* `zkEVMOutputArtifacts` - provide interface for manage difernt modes of printing assignment tables (binary, readable, paricular display)
 
 ## Dependencies
 
@@ -78,7 +82,7 @@ If for some reason you don't want to use PAT, you can fallback to using SSH auth
 using `--override-input` option. Add this to your Nix command:
 
 ```plaintext
---override-input nil_evm_assigner git+ssh://git@github.com/NilFoundation/evm-assigner.git
+--override-input nil-evm-assigner git+ssh://git@github.com/NilFoundation/evm-assigner.git
 ````
 
 To activate development environment run:
@@ -91,7 +95,7 @@ If you want Nix to use your local version of dependency instead of cloning it fr
 you can use `--override-input`. E.g. if you want to use your local evm-assigner, use this:
 
 ```bash
-nix develop --override-input nil_evm_assigner path:/path/to/evm-assigner
+nix develop --override-input nil-evm-assigner path:/path/to/evm-assigner
 ```
 
 Same option applies to `nix build` and etc.
@@ -183,7 +187,7 @@ Incoming block has one transaction which call deployed contract
 Config file with initial state of account storage could be passed with `-s`
 
 ```bash
-nix run .#assigner [-L] [--override-input nil_evm_assigner /path_to/evm-assigner] -- -b bin/assigner/example_data/call_block.ssz -t assignments -e pallas [-s bin/assigner/example_data/state.json] [--log-level debug]
+nix run .#assigner [-L] [--override-input nil-evm-assigner /path_to/evm-assigner] -- -b bin/assigner/example_data/call_block.ssz -t assignments -e pallas [-s bin/assigner/example_data/state.json] [--log-level debug]
 ```
 
 ### Block generation

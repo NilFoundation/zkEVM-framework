@@ -23,6 +23,7 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 
+#include "checks.hpp"
 #include "zkevm_framework/assigner_runner/runner.hpp"
 #include "zkevm_framework/assigner_runner/state_parser.hpp"
 #include "zkevm_framework/assigner_runner/utils.hpp"
@@ -35,6 +36,7 @@ int curve_dependent_main(const std::string& input_block_file_name,
                          const std::string& account_storage_config_name,
                          const std::string& assignment_table_file_name,
                          const std::optional<OutputArtifacts>& artifacts,
+                         const std::string& target_circuit,
                          boost::log::trivial::severity_level log_level,
                          std::vector<std::array<std::size_t, 4>>& column_sizes) {
     using ArithmetizationType =
@@ -50,7 +52,8 @@ int curve_dependent_main(const std::string& input_block_file_name,
         }
     }
 
-    single_thread_runner<BlueprintFieldType> runner(account_storage, column_sizes, log_level);
+    single_thread_runner<BlueprintFieldType> runner(account_storage, column_sizes, target_circuit,
+                                                    log_level);
 
     std::ifstream input_block_file(input_block_file_name.c_str(),
                                    std::ios_base::binary | std::ios_base::in);
@@ -74,6 +77,12 @@ int curve_dependent_main(const std::string& input_block_file_name,
         std::cerr << "Assigner run failed: " << run_err.value() << std::endl;
         return 1;
     }
+
+    /*TODO add checks of assignemt tables (is_satisfied, ...)
+    if (!check_assignment_tables()) {
+        std::cerr << "Check assignment tables failed" << std::endl;
+        return 1;
+    }*/
     return 0;
 }
 
@@ -101,6 +110,7 @@ int main(int argc, char* argv[]) {
             ("input-block,b", boost::program_options::value<std::string>(), "Block input files")
             ("account-storage,s", boost::program_options::value<std::string>(), "Account storage config file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
+            ("target-circuit", boost::program_options::value<std::string>(), "Fill assignment table only for one circuit (bytecode, rw)")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)");
     // clang-format on
 
@@ -137,6 +147,7 @@ int main(int argc, char* argv[]) {
     std::string input_block_file_name;
     std::string account_storage_config_name;
     std::string elliptic_curve;
+    std::string target_circuit;
     std::string log_level;
 
     if (vm.count("assignment-tables")) {
@@ -184,6 +195,10 @@ int main(int argc, char* argv[]) {
         elliptic_curve = "pallas";
     }
 
+    if (vm.count("target-circuit")) {
+        target_circuit = vm["target-circuit"].as<std::string>();
+    }
+
     if (vm.count("log-level")) {
         log_level = vm["log-level"].as<std::string>();
     } else {
@@ -216,13 +231,13 @@ int main(int argc, char* argv[]) {
     }
 
     std::vector<std::array<std::size_t, 4>> column_sizes = {{
-                                                                15,  // witness
+                                                                65,  // witness
                                                                 1,   // public_input
                                                                 5,   // constants
                                                                 30   // selectors
                                                             },
                                                             {
-                                                                15,  // witness
+                                                                65,  // witness
                                                                 1,   // public_input
                                                                 5,   // constants
                                                                 30   // selectors
@@ -233,7 +248,7 @@ int main(int argc, char* argv[]) {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::curves::pallas::base_field_type>(
                 input_block_file_name, account_storage_config_name, assignment_table_file_name,
-                artifacts, log_options[log_level], column_sizes);
+                artifacts, target_circuit, log_options[log_level], column_sizes);
             break;
         }
         case 1: {
@@ -248,7 +263,7 @@ int main(int argc, char* argv[]) {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
                 input_block_file_name, account_storage_config_name, assignment_table_file_name,
-                artifacts, log_options[log_level], column_sizes);
+                artifacts, target_circuit, log_options[log_level], column_sizes);
             break;
         }
     };

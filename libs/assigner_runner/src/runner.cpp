@@ -16,10 +16,15 @@ template<typename BlueprintFieldType>
 void single_thread_runner<BlueprintFieldType>::initialize_assignments(
     const std::vector<std::array<std::size_t, 4>>& column_sizes) {
     // initialize assignment tables
+    BOOST_LOG_TRIVIAL(debug) << "Number assignment tables = " << column_sizes.size() << "\n";
     for (const auto& table_column_sizes : column_sizes) {
         nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType> desc(
             table_column_sizes[0], table_column_sizes[1], table_column_sizes[2],
             table_column_sizes[3]);
+        BOOST_LOG_TRIVIAL(debug) << "witnesses = " << table_column_sizes[0]
+                                 << " public inputs = " << table_column_sizes[1]
+                                 << " constants = " << table_column_sizes[2]
+                                 << " selectors = " << table_column_sizes[3] << "\n";
         m_assignments.emplace_back(desc);
     }
 }
@@ -128,7 +133,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
     // default interface for access to the host
     const struct evmc_host_interface* host_interface = &evmc::Host::get_interface();
 
-    VMHost host(tx_context, m_account_storage, assigner_ptr);
+    VMHost host(tx_context, m_account_storage, assigner_ptr, m_target_circuit);
     struct evmc_host_context* ctx = host.to_context();
     const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
 
@@ -213,7 +218,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
                                  << "  code size = " << transaction.m_data.size() << "\n";
 
         auto res = nil::blueprint::evaluate(host_interface, ctx, rev, &msg, code.data(),
-                                            code.size(), assigner_ptr);
+                                            code.size(), assigner_ptr, m_target_circuit);
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate result = " << to_str(res.status_code) << "\n";
         if (res.status_code == EVMC_SUCCESS) {

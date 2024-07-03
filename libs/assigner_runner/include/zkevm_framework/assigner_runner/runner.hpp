@@ -19,16 +19,20 @@ class single_thread_runner {
 
     /// @brief Initialize runner with empty account storage
     single_thread_runner(const std::vector<std::array<std::size_t, 4>>& column_sizes,
+                         const std::string& target_circuit = "",
                          boost::log::trivial::severity_level log_level = boost::log::trivial::info)
-        : m_log_level(log_level) {
+        : m_target_circuit(target_circuit), m_log_level(log_level) {
         initialize_assignments(column_sizes);
     }
 
     /// @brief Initialize runner with predefined account storage
     single_thread_runner(const evmc::accounts& account_storage,
                          const std::vector<std::array<std::size_t, 4>>& column_sizes,
+                         const std::string& target_circuit = "",
                          boost::log::trivial::severity_level log_level = boost::log::trivial::info)
-        : m_account_storage(account_storage), m_log_level(log_level) {
+        : m_account_storage(account_storage),
+          m_target_circuit(target_circuit),
+          m_log_level(log_level) {
         initialize_assignments(column_sizes);
         if (log_level <= boost::log::trivial::debug) {
             BOOST_LOG_TRIVIAL(debug)
@@ -72,6 +76,7 @@ class single_thread_runner {
 
     std::vector<nil::blueprint::assignment<ArithmetizationType>> m_assignments;
     evmc::accounts m_account_storage;
+    std::string m_target_circuit;
     boost::log::trivial::severity_level m_log_level;
 };
 
