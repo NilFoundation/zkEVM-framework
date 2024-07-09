@@ -51,13 +51,15 @@ class NilCLI:
             raise RuntimeError(p.stderr)
         return a.group(1)
 
+    def init_config(self, endpoint: str):
+        self.run_cli(["config", "init"])
+        self.run_cli(["config", "set", "rpc_endpoint", endpoint])
+
     def keygen(self) -> str:
-        key_pattern = "key: ([0-9a-f]+)"
-        return self.run_cli(["keygen", "--new"], pattern=key_pattern)
+        return self.run_cli(["keygen", "new"])
 
     def new_wallet(self) -> str:
-        wallet_pattern = "New wallet address: (0x[0-9a-fA-F]+)"
-        return self.run_cli(["wallet", "new"], pattern=wallet_pattern)
+        return self.run_cli(["wallet", "new"])
 
     def deploy_contract(self, bytecode_file: str, abi_file: str) -> str:
         contract_pattern = "Contract address: (0x[0-9a-f]+)"
@@ -187,16 +189,12 @@ def block_generator(cli_config: str, block_config: str):
 
 # Initialize CLI config with endpoint, private key and new wallet address (on main shard)
 def make_config(path: str):
-    with open(path, "w") as config_file:
-        config_file.write("rpc_endpoint: \"http://127.0.0.1:8529\"\n")
+    endpoint = "http://127.0.0.1:8529"
     cli = NilCLI(path)
-    private_key = cli.keygen()
-    with open(path, "a") as config_file:
-        config_file.write(f"private_key: {private_key}\n")
+    cli.init_config(endpoint)
+    cli.keygen()
     with ClusterProcess():
-        wallet_address = cli.new_wallet()
-        with open(path, "a") as config_file:
-            config_file.write(f"address: {wallet_address}\n")
+        cli.new_wallet()
 
 def parse_arguments():
     parser = argparse.ArgumentParser(prog="Nil block generator",
