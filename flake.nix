@@ -24,9 +24,8 @@
       };
     };
     nil-cluster = {
-      type = "github";
-      owner = "NilFoundation";
-      repo = "nil";
+      type = "git";  # 'git' is required here, for 'github' we cannot compute cluster version via git history
+      url = "https://github.com/NilFoundation/nil";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
