@@ -13,7 +13,7 @@ target_include_directories(zkEVMAssignerRunner
                             PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
-find_package(Boost COMPONENTS REQUIRED log random)
+find_package(Boost COMPONENTS REQUIRED log)
 find_package(evm-assigner REQUIRED)
 target_link_libraries(zkEVMAssignerRunner
                         PUBLIC
@@ -22,7 +22,6 @@ target_link_libraries(zkEVMAssignerRunner
                         zkEVMJsonHelpers
                         zkEVMOutputArtifacts
                         Boost::log
-                        Boost::random
 )
 
 install(TARGETS zkEVMAssignerRunner
