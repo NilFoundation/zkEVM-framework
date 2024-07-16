@@ -35,6 +35,7 @@
       type = "github";
       owner = "NilFoundation";
       repo = "crypto3";
+      rev = "3bd5b8df2091274abaa28fd86b9e3e89d661b95a";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
@@ -45,6 +46,7 @@
       url = "https://github.com/NilFoundation/zkllvm-blueprint";
       type = "git";
       submodules = true;
+      rev = "73d6a40e39b6b6fc7b1c84441e62337206dc0815";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
