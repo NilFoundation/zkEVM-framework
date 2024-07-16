@@ -37,6 +37,8 @@
       repo = "crypto3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+        nix-3rdparty.follows = "nix-3rdparty";
       };
     };
     nil-zkllvm-blueprint = {
