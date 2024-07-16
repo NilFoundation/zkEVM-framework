@@ -32,9 +32,9 @@
       };
     };
     nil-crypto3 = {
-      url = "https://github.com/NilFoundation/crypto3";
-      type = "git";
-      submodules = true;
+      type = "github";
+      owner = "NilFoundation";
+      repo = "crypto3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
       };
