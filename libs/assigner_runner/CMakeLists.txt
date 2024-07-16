@@ -22,7 +22,6 @@ target_link_libraries(zkEVMAssignerRunner
                         zkEVMJsonHelpers
                         zkEVMOutputArtifacts
                         Boost::log
-                        Boost::random
 )
 
 install(TARGETS zkEVMAssignerRunner
