@@ -94,6 +94,7 @@
         pkgs.solc
         pkgs.valijson
         # Packages from nix-3rdparty
+        (pkgs.intx.override { inherit enableDebug; })
         (pkgs.sszpp.override { inherit enableDebug; })
         (pkgs.evmc.override { inherit enableDebug; })
         # Repo dependencies
