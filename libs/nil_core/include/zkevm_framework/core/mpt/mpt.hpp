@@ -1,0 +1,10 @@
+#ifndef ZKEMV_FRAMEWORK_LIBS_NIL_CORE_INCLUDE_ZKEVM_FRAMEWORK_CORE_MPT_MPT_HPP_
+#define ZKEMV_FRAMEWORK_LIBS_NIL_CORE_INCLUDE_ZKEVM_FRAMEWORK_CORE_MPT_MPT_HPP_
+
+namespace core {
+    namespace mpt {
+        class Mpt;
+    }  // namespace mpt
+}  // namespace core
+
+#endif  // ZKEMV_FRAMEWORK_LIBS_NIL_CORE_INCLUDE_ZKEVM_FRAMEWORK_CORE_MPT_MPT_HPP_
