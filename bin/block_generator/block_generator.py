@@ -9,6 +9,7 @@ import logging
 from pathlib import Path
 import random
 import re
+import os
 import subprocess
 from time import sleep
 from typing import Dict
@@ -33,17 +34,23 @@ class ClusterProcess:
 
 # Interface for usage of nil_cli
 class NilCLI:
-    def __init__(self, config_path: str):
-        self.config_path = config_path
+    def __init__(self, cli_config_name=None):
+        self.config_path = cli_config_name
 
     def run_cli(self, args: list[str], pattern=None) -> str:
-        full_arg_list = ["nil_cli", "-c", self.config_path] + args
+        full_arg_list = ["nil_cli"]
+        if self.config_path is not None:
+            full_arg_list += ["-c", self.config_path]
+        full_arg_list += args
         logging.info("Launching " + " ".join(full_arg_list))
         p = subprocess.run(full_arg_list, capture_output=True)
-        logging.debug(p.stderr)
         if p.returncode != 0:
             raise RuntimeError(p.stderr)
-        output = p.stderr.decode()
+        output = p.stdout.decode()
+        # result of "config show" command printed to stderr
+        if not output:
+            output = p.stderr.decode()
+        logging.debug(output)
         if pattern is None:
             return output
         a = re.search(pattern, output)
@@ -51,15 +58,31 @@ class NilCLI:
             raise RuntimeError(p.stderr)
         return a.group(1)
 
-    def init_config(self, endpoint: str):
+    def wallet_is_exist(self) -> str:
+        wallet_pattern = "Wallet address: (0x[0-9a-fA-F]+)"
+        return self.run_cli(["wallet", "info"], pattern=wallet_pattern)
+
+    def new_wallet(self) -> str:
+        address = self.wallet_is_exist()
+        if address is not None:
+            return address
+        wallet_pattern = "New wallet address: (0x[0-9a-fA-F]+)"
+        return self.run_cli(["wallet", "new"], pattern=wallet_pattern)
+
+    def init_config(self, path: str):
+        # get current endpoint
+        endpoint_pattern = "rpc_endpoint: ([0-9a-z:/.]+)"
+        endpoint = self.run_cli(["config", "show"], pattern=endpoint_pattern)
+        print(endpoint)
+        if endpoint is None:
+            raise ValueError(f"Can't get current endpoint")
+        # use new config for all calls
+        self.config_path = path
         self.run_cli(["config", "init"])
         self.run_cli(["config", "set", "rpc_endpoint", endpoint])
 
     def keygen(self) -> str:
         return self.run_cli(["keygen", "new"])
-
-    def new_wallet(self) -> str:
-        return self.run_cli(["wallet", "new"])
 
     def deploy_contract(self, bytecode_file: str, abi_file: str) -> str:
         contract_pattern = "Contract address: (0x[0-9a-f]+)"
@@ -72,9 +95,11 @@ class NilCLI:
 
     def call_contract(self, contract_address: str, method_name: str,arguments: list[str],
                       abi_file: str):
+        message_pattern = "Message hash: (0x[0-9a-f]+)"
         call_args = ["wallet", "send-message", contract_address, method_name] + arguments
         call_args += ["--abi", abi_file]
-        self.run_cli(call_args)
+        #call_args += ["--no-wait"] # force put transaction into the one block
+        return self.run_cli(call_args, pattern=message_pattern)
 
 # Remove directory recursively
 def rmtree(f: Path):
@@ -143,8 +168,16 @@ class Contract:
         self.address = cli.deploy_contract(self.bin, self.abi)
         self.deployed = True
 
-# Deploy contracts and send requested messages to them
-def submit_transactions(cli: NilCLI, contract_map: Dict[int, Contract], transactions):
+# Deploy contracts
+def deploy_contracts(cli: NilCLI, contract_map: Dict[int, Contract]):
+        cli.new_wallet()
+        for id, contract in contract_map.items():
+            if not contract.deployed:
+                contract.deploy(cli)
+
+# Send message to call deployed contract
+def submit_transactions(cli: NilCLI, contract_map: Dict[int, Contract], transactions) -> str:
+    last_message_hash = None
     for transaction in transactions:
         contract_id = transaction["contractId"]
         if contract_id not in contract_map:
@@ -152,9 +185,31 @@ def submit_transactions(cli: NilCLI, contract_map: Dict[int, Contract], transact
 
         contract = contract_map[contract_id]
         if not contract.deployed:
-            contract.deploy(cli)
+            raise ValueError(f"Contract id {contract_id} is not deployed")
         call_args = transaction["callArguments"] if "callArguments" in transaction else []
-        cli.call_contract(contract.address, transaction["methodName"], call_args, contract.abi)
+        last_message_hash = cli.call_contract(contract.address, transaction["methodName"], call_args, contract.abi)
+
+    return last_message_hash
+
+# extract block hash and shard id for submitted message
+def get_block_hash(cli: NilCLI, message_hash: str) -> (str, str):
+    if message_hash is None:
+            raise ValueError(f"Message hash is empty")
+    receipt_str = cli.run_cli(["receipt", message_hash])
+    receipt_str = re.split("Receipt data: ", receipt_str)[1]
+    receipt_json = json.loads(receipt_str)
+    return receipt_json["shardId"], receipt_json["blockHash"]
+
+# extract block by hash and shard id
+def extract_block(cli: NilCLI, shard_id: str, block_hash: str):
+    if shard_id is None:
+            raise ValueError(f"ShardId is empty")
+    if block_hash is None:
+            raise ValueError(f"Block Hash is empty")
+    block_str = cli.run_cli(["block", block_hash, "--shard-id " + str(shard_id)])
+    block_str = re.split("Block data: ", block_str)[1]
+    block_json = json.loads(block_str)
+    return block_json
 
 # Load json and validate it via schema
 def validate_json(file_path: str, schema_path: str):
@@ -167,7 +222,7 @@ def validate_json(file_path: str, schema_path: str):
 
 
 # Deploy the contract and generate transactions by calling it
-def block_generator(cli_config: str, block_config: str):
+def generate_block(block_config: str, cli_config_name: str):
     # Get schema file by relative path
     module_path = Path(__file__).resolve()
     schema_path = module_path.parent / "resources" / "block_schema.json"
@@ -183,15 +238,33 @@ def block_generator(cli_config: str, block_config: str):
 
     # Submit transactions
     with ClusterProcess():
-        cli = NilCLI(cli_config)
+        cli = NilCLI(cli_config_name)
         with temp_directory(ARTIFACT_DIR):
-            submit_transactions(cli, contracts, config_json["transactions"])
+            deploy_contracts(cli, contracts)
+            last_message_hash = submit_transactions(cli, contracts, config_json["transactions"])
+            (shard_id, block_hash) = get_block_hash(cli, last_message_hash)
+
+    print("ShardId = " + str(shard_id))
+    print("BlockHash = " + block_hash)
+
+# Write block to file
+def write_block_to_file(shard_id: str, block_hash: str, block_file_name: str, cli_config_name: str):
+    with ClusterProcess():
+        cli = NilCLI(cli_config_name)
+        block_json = extract_block(cli, shard_id, block_hash)
+        if block_json is None:
+            raise ValueError(f"Failed extract Block")
+        with open(block_file_name, 'w') as f:
+            json.dump(block_json, f)
 
 # Initialize CLI config with endpoint, private key and new wallet address (on main shard)
 def make_config(path: str):
-    endpoint = "http://127.0.0.1:8529"
-    cli = NilCLI(path)
-    cli.init_config(endpoint)
+    # remove if file already exists
+    if os.path.isfile(path):
+        os.remove(path)
+
+    cli = NilCLI()
+    cli.init_config(path)
     cli.keygen()
     with ClusterProcess():
         cli.new_wallet()
@@ -199,19 +272,27 @@ def make_config(path: str):
 def parse_arguments():
     parser = argparse.ArgumentParser(prog="Nil block generator",
                                     description="Tool for contract deployment and creating transactions to generate new blocks")
-    parser.add_argument("--mode", choices=["make-config", "generate-blocks"],required=True, help="mode")
-    parser.add_argument("-c", "--cli-config-name", default="config.yaml", help="CLI config file name")
+    parser.add_argument("--mode", choices=["make-config", "generate-block", "write-file"],required=True, help="mode")
+    parser.add_argument("--cli-config-name", help="NIL CLI extra config name describing additional wollets")
     parser.add_argument("-b", "--block-config-name", help="Block config name describing transactions")
+    parser.add_argument("-o", "--block-output-name", help="Block output file name")
+    parser.add_argument("--shard-id", help="Shard ID")
+    parser.add_argument("--block-hash", help="Block Hash")
     parser.add_argument("-v", "--verbose", help="Enable debug logs", action="store_true")
 
     args = parser.parse_args()
+    # Extra checks for 'make-conig' mode
+    if args.mode == "make-config":
+        if args.cli_config_name is None:
+            raise ValueError("--cli-config-name argument must be passed for 'make-config' mode")
     # Extra checks for 'generate-blocks' mode
-    if args.mode == "generate-blocks":
+    if args.mode == "generate-block":
         if args.block_config_name is None:
             raise ValueError("--block-config-name argument must be passed for 'generate-blocks' mode")
-        config_path = Path(args.block_config_name)
-        if not config_path.exists():
-            raise FileNotFoundError(f"Block configuration file {str(config_path)} does not exist")
+    # Extra checks for 'write ile' mode
+    if args.mode == "write-file":
+        if (args.block_output_name is None or args.shard_id is None or args.block_hash is None):
+            raise ValueError("--block-output-name, --shard-id, --block-hash arguments must be passed for 'write-file' mode")
     return args
 
 if __name__ == "__main__":
@@ -222,5 +303,9 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.INFO)
     if args.mode == "make-config":
         make_config(args.cli_config_name)
+    elif args.mode == "generate-block":
+        generate_block(args.block_config_name, args.cli_config_name)
+    elif args.mode == "write-file":
+        write_block_to_file(args.shard_id, args.block_hash, args.block_output_name, args.cli_config_name)
     else:
-        block_generator(args.cli_config_name, args.block_config_name)
+        raise ValueError("Unknown mode")
