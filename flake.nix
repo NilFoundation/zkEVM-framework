@@ -38,7 +38,6 @@
       rev = "3bd5b8df2091274abaa28fd86b9e3e89d661b95a";
       inputs = {
         nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
         nix-3rdparty.follows = "nix-3rdparty";
       };
     };
@@ -74,115 +73,28 @@
       evm-assigner-pkgs = nil-evm-assigner.packages.${system};
       evm-assigner = { enableDebug ? false }:
         if enableDebug then evm-assigner-pkgs.debug else evm-assigner-pkgs.default;
-
       crypto3 = nil-crypto3.packages.${system}.default;
       blueprint = nil-zkllvm-blueprint.packages.${system}.default;
       cluster = nil-cluster.packages.${system}.default;
-
-      # Default env will bring us GCC 13 as default compiler
-      stdenv = pkgs.stdenv;
-
-      defaultNativeBuildInputs = [
-        pkgs.cmake
-        pkgs.ninja
-      ];
-
-      defaultBuildInputs = { enableDebug ? false }: [
-        # Default nixpkgs packages
-        pkgs.python3
-        pkgs.python312Packages.jsonschema
-        pkgs.solc
-        pkgs.valijson
-        # Packages from nix-3rdparty
-        (pkgs.intx.override { inherit enableDebug; })
-        (pkgs.sszpp.override { inherit enableDebug; })
-        (pkgs.evmc.override { inherit enableDebug; })
-        # Repo dependencies
-        (evm-assigner { inherit enableDebug; })
-        crypto3
-        blueprint
-        # Blueprint will propagate Boost library.
-        # We don't include it here explicitly to reuse the same version.
-        cluster
-      ];
-
-      defaultCheckInputs = [
-        pkgs.gtest
-      ];
-
-      defaultDevTools = [
-        pkgs.doxygen
-        pkgs.clang_17 # clang-format and clang-tidy
-        pkgs.go_1_22
-        pkgs.gotools
-        pkgs.go-tools
-        pkgs.gopls
-        pkgs.golangci-lint
-        pkgs.gofumpt
-        pkgs.gci
-      ];
-
-      releaseBuild = stdenv.mkDerivation {
-        name = "zkEVM-framework";
-
-        nativeBuildInputs = defaultNativeBuildInputs;
-
-        buildInputs = defaultBuildInputs { };
-
-        src = self;
-
-        cmakeBuildType = "Release";
-
-        doCheck = false;
-      };
-
-      debugBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
-        name = previousAttrs.name + "-debug";
-
-        buildInputs = defaultBuildInputs { enableDebug = true; };
-
-        cmakeBuildType = "Debug";
-
-        dontStrip = true;
-      });
-
-      testBuild = releaseBuild.overrideAttrs (finalAttrs: previousAttrs: {
-        name = previousAttrs.name + "-tests";
-
-        cmakeFlags = [ "-DENABLE_TESTS=TRUE" ];
-
-        doCheck = true;
-
-        checkInputs = defaultCheckInputs;
-
-         checkPhase = ''
-          ctest
-          ninja executables_tests
-        '';
-
-        GTEST_OUTPUT = "xml:${placeholder "out"}/test-reports/";
-
-        dontInstall = true;
-      });
-
-      makeDevShell = { enableDebug }: pkgs.mkShell {
-        nativeBuildInputs = defaultNativeBuildInputs
-          ++ defaultBuildInputs { inherit enableDebug; }
-          ++ defaultCheckInputs
-          ++ defaultDevTools;
-
-        shellHook = ''
-          echo "zkEVM-framework ${if enableDebug then "debug" else "release"} dev environment activated"
-        '';
-      };
     in
     rec {
       packages = rec {
-        default = release;
-        release = releaseBuild;
-        debug = debugBuild;
+        zkevm-framework = (pkgs.callPackage ./zkevm-framework.nix {
+          src_repo = self;
+          inherit crypto3 blueprint evm-assigner cluster;
+        });
+        debug = (pkgs.callPackage ./zkevm-framework.nix {
+          src_repo = self;
+          enableDebug = true;
+          inherit crypto3 blueprint evm-assigner cluster;
+        });
+        default = zkevm-framework;
       };
-      checks.default = testBuild;
+      checks.default = (pkgs.callPackage ./zkevm-framework.nix {
+        src_repo = self;
+        enableTesting = true;
+        inherit crypto3 blueprint evm-assigner cluster;
+      });
       apps = {
         assigner = {
           type = "app";
@@ -192,11 +104,6 @@
           type = "app";
           program = "${packages.default}/bin/block_gen";
         };
-      };
-      devShells = rec {
-        default = debug;
-        release = makeDevShell { enableDebug = false; };
-        debug = makeDevShell { enableDebug = true; };
       };
     }
     );
