@@ -155,6 +155,11 @@
 
         checkInputs = defaultCheckInputs;
 
+         checkPhase = ''
+          ctest
+          ninja executables_tests
+        '';
+
         GTEST_OUTPUT = "xml:${placeholder "out"}/test-reports/";
 
         dontInstall = true;
