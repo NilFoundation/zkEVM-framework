@@ -71,6 +71,11 @@ stdenv.mkDerivation {
 
   doCheck = enableTesting;
 
+  checkPhase = ''
+    ctest
+    ninja executables_tests
+  '';
+
   GTEST_OUTPUT = "xml:${placeholder "out"}/test-reports/";
 
   shellHook = ''
