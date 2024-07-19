@@ -206,11 +206,20 @@ It requires `nil` and `nil_cli` binaries in `PATH` (already available inside Nix
 Usage:
 
 ```bash
-# Generate CLI config with server endpoint, private key and wallet address
-./bin/block_generator/block_generator.py --mode make-config --cli-config-name test_config.yaml
-# Generate transactions described in config file
-./bin/block_generator/block_generator.py --mode generate-blocks --cli-config-name test_config.yaml --block-config-name bin/block_generator/example_data/block_config.json
+# Generate block and get ShardId, BlockHash
+./bin/block_generator/block_generator.py --mode generate-block --block-config-name bin/block_generator/example_data/block_config.json
+# Generate file with block data
+./bin/block_generator/block_generator.py --mode write-file -o block.json --shard-id <ShardId> --block-hash <BlockHash>
 ```
+
+For use not default wallet neet to create custom configuration file
+
+```bash
+# Generate custom coniguration file
+./bin/block_generator/block_generator.py --mode make-config --cli-config-name <path to create new config file>
+```
+
+And use `--cli-config-name <path to create new config file>` in each follow commands
 
 Config file format:
 
