@@ -14,6 +14,7 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
+#include <nil/blueprint/zkevm/bytecode.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 #include <nil/crypto3/algebra/curves/ed25519.hpp>
 #include <nil/crypto3/algebra/curves/pallas.hpp>
@@ -23,6 +24,7 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 
+#include "assigner.hpp"
 #include "checks.hpp"
 #include "zkevm_framework/assigner_runner/runner.hpp"
 #include "zkevm_framework/assigner_runner/state_parser.hpp"
@@ -83,6 +85,13 @@ int curve_dependent_main(const std::string& input_block_file_name,
         std::cerr << "Check assignment tables failed" << std::endl;
         return 1;
     }*/
+
+    // Check if bytecode table is satisfied to the bytecode constraints
+    auto &bytecode_table = runner.get_assignments()[nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX];
+    if (!check_bytecode_satisfied<BlueprintFieldType>(bytecode_table)) {
+        std::cerr << "Bytecode table is not satisfied!" << std::endl;
+        return 1;
+    }
     return 0;
 }
 

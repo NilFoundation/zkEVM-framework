@@ -85,11 +85,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1720430966,
-        "narHash": "sha256-u3HzofdomEAmHI7HSlgd1jF8vudVRxZELFUAYyhauAs=",
+        "lastModified": 1721816725,
+        "narHash": "sha256-Az2NViVePfA7z5MpnJrFzg8wgt5pkL6CLUAR/OD+ToA=",
         "owner": "NilFoundation",
         "repo": "evm-assigner",
-        "rev": "58e33393994062a0470f48f21fe36e8aeaaf2a93",
+        "rev": "f596f522e796dfc1b909246829f5fa6e7ff2d2df",
         "type": "github"
       },
       "original": {

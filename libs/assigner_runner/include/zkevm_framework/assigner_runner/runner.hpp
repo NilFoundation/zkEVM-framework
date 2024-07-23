@@ -69,7 +69,7 @@ class single_thread_runner {
     std::optional<std::string> fill_assignments(const data_types::Block& input_block);
 
     /// @brief Get reference to assignents
-    const std::vector<nil::blueprint::assignment<ArithmetizationType>>& get_assignments() const;
+    std::vector<nil::blueprint::assignment<ArithmetizationType>>& get_assignments();
 
   private:
     void initialize_assignments(const std::vector<std::array<std::size_t, 4>>& column_sizes);

@@ -88,7 +88,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
 
     // create assigner instance
     auto assigner_ptr =
-        std::make_shared<nil::blueprint::assigner<BlueprintFieldType>>(m_assignments);
+        std::make_shared<nil::evm_assigner::assigner<BlueprintFieldType>>(m_assignments);
 
     // get header of the current block
     const auto block_header = input_block.m_currentBlock;
@@ -217,7 +217,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
                                  << "  gas = " << transaction.m_gas << "\n"
                                  << "  code size = " << transaction.m_data.size() << "\n";
 
-        auto res = nil::blueprint::evaluate(host_interface, ctx, rev, &msg, code.data(),
+        auto res = nil::evm_assigner::evaluate(host_interface, ctx, rev, &msg, code.data(),
                                             code.size(), assigner_ptr, m_target_circuit);
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate result = " << to_str(res.status_code) << "\n";
@@ -232,9 +232,9 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
 }
 
 template<typename BlueprintFieldType>
-const std::vector<nil::blueprint::assignment<
+std::vector<nil::blueprint::assignment<
     typename single_thread_runner<BlueprintFieldType>::ArithmetizationType>>&
-single_thread_runner<BlueprintFieldType>::get_assignments() const {
+single_thread_runner<BlueprintFieldType>::get_assignments() {
     return m_assignments;
 }
 
