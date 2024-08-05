@@ -1,6 +1,7 @@
 #include "zkevm_framework/assigner_runner/runner.hpp"
 
 #include <assigner.hpp>
+#include <nil/blueprint/zkevm/bytecode.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 #include <nil/crypto3/algebra/curves/pallas.hpp>
 #include <optional>
@@ -30,6 +31,56 @@ void single_thread_runner<BlueprintFieldType>::initialize_assignments(
 }
 
 template<typename BlueprintFieldType>
+void single_thread_runner<BlueprintFieldType>::initialize_bytecode_circuit() {
+    using ArithmetizationType =
+        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
+    using component_type =
+        nil::blueprint::components::zkevm_bytecode<ArithmetizationType, BlueprintFieldType>;
+
+    // Prepare witness container to make an instance of the component
+    typename component_type::manifest_type m = component_type::get_manifest();
+    size_t witness_amount = *(m.witness_amount->begin());
+    std::vector<std::uint32_t> witnesses(witness_amount);
+    for (std::uint32_t i = 0; i < witness_amount; i++) {
+        witnesses[i] = i;
+    }
+
+    constexpr size_t max_code_size = 24576;
+    component_type component_instance = component_type(
+        witnesses, std::array<std::uint32_t, 1>{0}, std::array<std::uint32_t, 1>{0}, max_code_size);
+
+    auto lookup_tables = component_instance.component_lookup_tables();
+    for (auto& [k, v] : lookup_tables) {
+        m_bytecode_circuit.reserve_table(k);
+    }
+
+    // TODO: pass a proper public input here
+    typename component_type::input_type input({}, {}, typename component_type::var());
+    auto& bytecode_table =
+        m_assignments[nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX];
+    nil::blueprint::components::generate_circuit(component_instance, m_bytecode_circuit,
+                                                 bytecode_table, input, 0);
+
+    std::vector<size_t> lookup_columns_indices;
+    for (std::size_t i = 1; i < bytecode_table.constants_amount(); i++) {
+        lookup_columns_indices.push_back(i);
+    }
+
+    std::size_t cur_selector_id = 0;
+    for (const auto& gate : m_bytecode_circuit.gates()) {
+        cur_selector_id = std::max(cur_selector_id, gate.selector_index);
+    }
+    for (const auto& lookup_gate : m_bytecode_circuit.lookup_gates()) {
+        cur_selector_id = std::max(cur_selector_id, lookup_gate.tag_index);
+    }
+    cur_selector_id++;
+    nil::crypto3::zk::snark::pack_lookup_tables_horizontal(
+        m_bytecode_circuit.get_reserved_indices(), m_bytecode_circuit.get_reserved_tables(),
+        m_bytecode_circuit, bytecode_table, lookup_columns_indices, cur_selector_id,
+        bytecode_table.rows_amount(), 500000);
+}
+
+template<typename BlueprintFieldType>
 std::optional<std::string> single_thread_runner<BlueprintFieldType>::run(
     const unsigned char* input_block_data, size_t input_block_size,
     const std::string& assignment_table_file_name,
@@ -55,7 +106,10 @@ template<typename BlueprintFieldType>
 std::optional<std::string> single_thread_runner<BlueprintFieldType>::run(
     const data_types::Block& input_block, const std::string& assignment_table_file_name,
     const std::optional<OutputArtifacts>& artifacts) {
-    fill_assignments(input_block);
+    auto error = fill_assignments(input_block);
+    if (error.has_value()) {
+        return error;
+    }
 
     BOOST_LOG_TRIVIAL(debug) << "print assignment tables " << m_assignments.size() << "\n";
 
@@ -135,7 +189,6 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
 
     VMHost host(tx_context, m_account_storage, assigner_ptr, m_target_circuit);
     struct evmc_host_context* ctx = host.to_context();
-    const std::vector<data_types::AccountBlock>& accountBlocks = input_block.m_accountBlocks;
 
     for (const auto& input_msg : input_block.m_inputMsgs) {
         const evmc_address origin_addr = to_evmc_address(input_msg.m_info.m_src);
@@ -144,29 +197,6 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
         BOOST_LOG_TRIVIAL(debug) << "process CALL message\n  from "
                                  << to_str(input_msg.m_info.m_src) << " to "
                                  << to_str(input_msg.m_info.m_dst) << "\n";
-
-        // check if transaction in block
-        const auto acc_block_it =
-            std::find_if(accountBlocks.begin(), accountBlocks.end(),
-                         [input_msg](const data_types::AccountBlock& acc) {
-                             return acc.m_accountAddress == input_msg.m_info.m_dst;
-                         });
-        if (acc_block_it != accountBlocks.end()) {
-            const std::vector<data_types::Transaction>& transactions = acc_block_it->m_transactions;
-            const auto transaction_it =
-                std::find_if(transactions.begin(), transactions.end(),
-                             [input_msg](const data_types::Transaction& t) {
-                                 return t.m_id == input_msg.m_transaction.m_id;
-                             });
-            if (transaction_it == transactions.end()) {
-                error << "Transaction  with id " << input_msg.m_transaction.m_id << " is not found";
-                return error.str();
-            }
-        } else {
-            error << "Account block for address " << to_str(input_msg.m_info.m_dst)
-                  << "is not found";
-            return error.str();
-        }
 
         const auto& transaction = input_msg.m_transaction;
         if (transaction.m_type != data_types::Transaction::Type::ContractCreation &&
@@ -177,17 +207,17 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
         }
         // set tansaction related fields
         tx_context.tx_gas_price = to_uint256be(transaction.m_gasPrice);
-        data_types::bytes transaction_code = transaction.m_data;
-        std::vector<uint8_t> code(transaction_code.size());
+        data_types::bytes transaction_calldata = transaction.m_data;
+        std::vector<uint8_t> calldata(transaction_calldata.size());
         size_t count = 0;
-        std::for_each(transaction_code.begin(), transaction_code.end(),
-                      [&count, &code](const std::byte& v) {
-                          code[count] = to_integer<uint8_t>(v);
+        std::for_each(transaction_calldata.begin(), transaction_calldata.end(),
+                      [&count, &calldata](const std::byte& v) {
+                          calldata[count] = to_integer<uint8_t>(v);
                           count++;
                       });
-        if (count != code.size()) {
+        if (count != calldata.size()) {
             error << "Failed copy transaction" << transaction.m_id
-                  << " code: expected size = " << code.size() << ", real = " << count;
+                  << " calldata: expected size = " << calldata.size() << ", real = " << count;
             return error.str();
         }
 
@@ -203,11 +233,18 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
                                    .gas = gas,
                                    .recipient = recipient_addr,
                                    .sender = sender_addr,
-                                   .input_data = input,
-                                   .input_size = sizeof(input),
+                                   .input_data = calldata.data(),
+                                   .input_size = calldata.size(),
                                    .value = value,
                                    .create2_salt = {0},
                                    .code_address = origin_addr};
+
+        auto recipient_iter = m_account_storage.find(recipient_addr);
+        if (recipient_iter == m_account_storage.end()) {
+            error << "Account " << to_str(recipient_addr) << " was not found in account storage";
+            return error.str();
+        }
+        auto contract_code = recipient_iter->second.code;
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate transaction " << transaction.m_id << "\n"
                                  << "  type = " << to_str(transaction.m_type) << "\n"
@@ -215,10 +252,12 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
                                  << "  value = " << transaction.m_value << "\n"
                                  << "  gas price = " << transaction.m_gasPrice << "\n"
                                  << "  gas = " << transaction.m_gas << "\n"
-                                 << "  code size = " << transaction.m_data.size() << "\n";
+                                 << "  calldata size = " << calldata.size() << "\n"
+                                 << "  code size = " << contract_code.size() << "\n";
 
-        auto res = nil::evm_assigner::evaluate(host_interface, ctx, rev, &msg, code.data(),
-                                            code.size(), assigner_ptr, m_target_circuit);
+        auto res =
+            nil::evm_assigner::evaluate(host_interface, ctx, rev, &msg, contract_code.data(),
+                                        contract_code.size(), assigner_ptr, m_target_circuit);
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate result = " << to_str(res.status_code) << "\n";
         if (res.status_code == EVMC_SUCCESS) {
@@ -229,13 +268,6 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
         }
     }
     return {};
-}
-
-template<typename BlueprintFieldType>
-std::vector<nil::blueprint::assignment<
-    typename single_thread_runner<BlueprintFieldType>::ArithmetizationType>>&
-single_thread_runner<BlueprintFieldType>::get_assignments() {
-    return m_assignments;
 }
 
 // Instantiate runner for required field types

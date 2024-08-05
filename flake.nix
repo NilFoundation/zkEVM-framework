@@ -90,7 +90,7 @@
       defaultBuildInputs = { enableDebug ? false }: [
         # Default nixpkgs packages
         pkgs.python3
-        pkgs.python311Packages.jsonschema
+        pkgs.python312Packages.jsonschema
         pkgs.solc
         pkgs.valijson
         # Packages from nix-3rdparty
