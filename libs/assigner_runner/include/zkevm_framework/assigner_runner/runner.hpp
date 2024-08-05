@@ -17,24 +17,17 @@ class single_thread_runner {
     using ArithmetizationType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
 
-    /// @brief Initialize runner with empty account storage
-    single_thread_runner(const std::vector<std::array<std::size_t, 4>>& column_sizes,
-                         const std::string& target_circuit = "",
-                         boost::log::trivial::severity_level log_level = boost::log::trivial::info)
-        : m_target_circuit(target_circuit), m_log_level(log_level) {
-        initialize_assignments(column_sizes);
-    }
-
     /// @brief Initialize runner with predefined account storage
-    single_thread_runner(const evmc::accounts& account_storage,
-                         const std::vector<std::array<std::size_t, 4>>& column_sizes,
+    single_thread_runner(const std::vector<std::array<std::size_t, 4>>& column_sizes,
+                         const evmc::accounts& account_storage = {},
                          const std::string& target_circuit = "",
                          boost::log::trivial::severity_level log_level = boost::log::trivial::info)
         : m_account_storage(account_storage),
           m_target_circuit(target_circuit),
           m_log_level(log_level) {
         initialize_assignments(column_sizes);
-        if (log_level <= boost::log::trivial::debug) {
+        initialize_bytecode_circuit();
+        if (log_level <= boost::log::trivial::debug && account_storage.size() != 0) {
             BOOST_LOG_TRIVIAL(debug)
                 << "Account storage initialized with " << account_storage.size() << " accounts: \n";
             for (const auto& [addr, acc] : account_storage) {
@@ -69,13 +62,25 @@ class single_thread_runner {
     std::optional<std::string> fill_assignments(const data_types::Block& input_block);
 
     /// @brief Get reference to assignents
-    std::vector<nil::blueprint::assignment<ArithmetizationType>>& get_assignments();
+    std::vector<nil::blueprint::assignment<ArithmetizationType>>& get_assignments() {
+        return m_assignments;
+    }
+
+    /// @brief Get preset bytecode circuit
+    nil::blueprint::circuit<nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>&
+    get_bytecode_circuit() {
+        return m_bytecode_circuit;
+    }
 
   private:
     void initialize_assignments(const std::vector<std::array<std::size_t, 4>>& column_sizes);
 
+    void initialize_bytecode_circuit();
+
     std::vector<nil::blueprint::assignment<ArithmetizationType>> m_assignments;
     evmc::accounts m_account_storage;
+    nil::blueprint::circuit<nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>
+        m_bytecode_circuit;
     std::string m_target_circuit;
     boost::log::trivial::severity_level m_log_level;
 };

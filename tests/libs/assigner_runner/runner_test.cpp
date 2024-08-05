@@ -39,7 +39,7 @@ TEST(runner_test, check_block) {
     evmc::accounts account_storage;
     auto init_err = init_account_storage(account_storage, STATE_CONFIG);
     ASSERT_FALSE(init_err.has_value());
-    single_thread_runner<BlueprintFieldType> runner(account_storage, column_sizes, "",
+    single_thread_runner<BlueprintFieldType> runner(column_sizes, account_storage, "",
                                                     boost::log::trivial::severity_level::debug);
     auto run_err = runner.fill_assignments(input_block);
     ASSERT_FALSE(run_err.has_value());
