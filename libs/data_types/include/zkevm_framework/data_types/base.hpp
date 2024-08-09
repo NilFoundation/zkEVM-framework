@@ -34,6 +34,21 @@ namespace data_types {
     /// @brief Account address.
     using Address = std::array<uint8_t, address_size>;
 
+    /// @brief Size of value in bytes.
+    constexpr size_t value_size = 32;
+
+    /// @brief Account address.
+    using Value = std::array<uint8_t, value_size>;
+
+    /// @brief Hash.
+    using Hash = uint64_t;
+
+    /// @brief Size of bloom in bytes.
+    constexpr size_t bloom_size = 256;
+
+    /// @brief Bloom.
+    using Bloom = std::array<uint8_t, bloom_size>;
+
     /// @brief Hasher for `Address`.
     struct AddressHasher {
         size_t operator()(const Address& addr) const {
@@ -45,11 +60,26 @@ namespace data_types {
         }
     };
 
+    /// @brief Size of ssz hash in bytes.
+    constexpr size_t ssz_hash_size = 32;
+
     /// @brief SSZ merkalization hash.
     using SSZHash = std::array<std::byte, 32>;
 
-    /// @brief Hash.
-    using Hash = uint64_t;  // TODO: define
+    /// @brief Currency balance info
+    using CurrencyBalance = std::array<std::byte, 24>;
+
+    /// @brief Size of data in bytes.
+    constexpr size_t data_size = 24;
+
+    /// @brief Raw data
+    using Data = std::array<uint8_t, data_size>;
+
+    /// @brief Size of signature in bytes.
+    constexpr size_t signature_size = 24;
+
+    /// @brief Signature.
+    using Signature = std::array<uint8_t, signature_size>;
 
     enum evmc_access_status : uint8_t {
         /// @brief The entry hasn't been accessed before – it's the first access.

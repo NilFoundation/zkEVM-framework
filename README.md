@@ -10,9 +10,9 @@ Framework for test verification of state of cluster based on EVM
 
 ### Libraries
 
-* `zkEVMDataTypes` - definitions of data structures used for verification
-* `zkEVMAssignerRunner` - provide interace for run EVM assigner
-* `zkEVMBlockGenerator` - provide interface for generate test blocks
+* `NilCore` - definitions of data structures used for fetching data from shards
+* `zkEVMAssignerRunner` - provide interace for run EVM assigner and fill assignment tables
+* `zkEVMRpc` - provide interface for send / process requests to RPC
 * `zkEVMJsonHelpers` - provide interface for process json configuration files
 * `zkEVMOutputArtifacts` - provide interface for manage difernt modes of printing assignment tables (binary, readable, paricular display)
 
@@ -36,9 +36,7 @@ Framework for test verification of state of cluster based on EVM
 * =nil; crypto3 [Repository](https://github.com/NilFoundation/crypto3)
 * =nil; zkllvm-blueprint [Repository](https://github.com/NilFoundation/zkllvm-blueprint)
 * =nil; evm-assigner [Repository](https://github.com/NilFoundation/evm-assigner)
-
-### Block generator
-
+* =nil; cluster [Repository](https://github.com/NilFoundation/nil)
 * Valijson [Repository](https://github.com/tristanpenman/valijson)
 
 ## Clone
@@ -200,17 +198,10 @@ nix run .#block_gen [-L] -- -i bin/assigner/example_data/call_block.json -o call
 
 ### Nil CLI block generation
 
-Wrapper script for `nil_cli` is available to deploy and call Solidity contracts.
-It requires `nil` and `nil_cli` binaries in `PATH` (already available inside Nix dev environment).
+Wrapper script for `nil` is available to deploy and call Solidity contracts.
+It requires `nild` and `nil` binaries in `PATH` (already available inside Nix dev environment).
 
 Usage:
-
-```bash
-# Generate block and get ShardId, BlockHash
-./bin/block_generator/block_generator.py --mode generate-block --block-config-name bin/block_generator/example_data/block_config.json
-# Generate file with block data
-./bin/block_generator/block_generator.py --mode write-file -o block.json --shard-id <ShardId> --block-hash <BlockHash>
-```
 
 For use not default wallet neet to create custom configuration file
 
@@ -220,6 +211,11 @@ For use not default wallet neet to create custom configuration file
 ```
 
 And use `--cli-config-name <path to create new config file>` in each follow commands
+
+```bash
+# Generate block, get ShardId, BlockHash. Write block data and state of the correspond contract to the files
+./bin/block_generator/block_generator.py --mode generate-block --block-config-name bin/block_generator/example_data/block_config.json [-o block.jsdon] [-s state.json]
+```
 
 Config file format:
 

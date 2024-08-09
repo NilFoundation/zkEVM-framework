@@ -1,0 +1,48 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type" :"object",
+    "description": "Block an input messages data",
+    "properties": {
+        "number": {
+            "type": "number"
+        },
+        "parentHash": {
+            "type": "string",
+            "pattern": "^0x[0-9a-f]+$"
+        },
+        "messages": {
+            "type": "array",
+            "items": {
+                "type" :"object",
+                "properties": {
+                    "flags": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "from": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]+$"
+                    },
+                    "fo": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]+$"
+                    },
+                    "value": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]+$"
+                    }
+                },
+                "required": ["flags", "from", "to", "value", "data"],
+                "additionalProperties": true
+            },
+            "uniqueItems": true
+        }
+    },
+    "required": ["number", "parentHash", "messages"],
+    "additionalProperties": true
+}

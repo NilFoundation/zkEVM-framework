@@ -2,55 +2,49 @@
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type" :"object",
     "description": "Account storage data",
-    "$defs": {
-        "address": {
-            "type":"string",
-            "pattern": "^0x[0-9a-f]+$",
-            "minLength": 42,
-            "maxLength": 42
-        }
-    },
     "properties": {
         "accounts": {
             "type": "array",
             "items": {
                 "type" :"object",
                 "properties": {
-                    "address": {
-                        "$ref": "#/$defs/address"
-                    },
-                    "balance": {
-                        "type": "integer",
-                        "minimum": 0
-                    },
                     "code": {
                         "type": "string",
                         "pattern": "^0x[0-9a-f]+$"
                     },
-                    "storage": {
+                    "contract": {
+                        "type": "string",
+                        "pattern": "^0x[0-9a-fA-F]+$"
+                    },
+                    "proof": {
                         "type": "array",
-                        "description": "Key-value map, keys and values can be up to 32 bytes",
                         "items": {
-                            "type" : "object",
+                            "type": "string",
+                            "pattern": "^0x[0-9a-f]+$"
+                        }
+                    },
+                    "storage": {
+                        "type" : "array",
+                        "items": {
+                            "type": "object",
                             "properties": {
-                                "key": {
+                                "Key": {
                                     "type": "string",
-                                    "pattern": "^0x[0-9a-f]+$",
+                                    "pattern": "^0x[0-9a-fA-F]+$",
                                     "minLength": 4,
                                     "maxLength": 66
                                 },
-                                "value": {
+                                "Val": {
                                     "type": "string",
-                                    "pattern": "^0x[0-9a-f]+$",
-                                    "minLength": 4,
-                                    "maxLength": 66
+                                    "pattern": "^[0-9]+$"
                                 }
                             },
-                            "required" : ["key", "value"]
+                            "required" : ["Key", "Val"],
+                            "additionalProperties": false
                         }
                     }
                 },
-                "required": ["address", "balance"],
+                "required": ["code", "contract", "proof", "storage"],
                 "additionalProperties": false
             },
             "uniqueItems": true

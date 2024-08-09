@@ -6,9 +6,7 @@ extern "C" {
 #endif
 
 void* make_runner();
-int run(void* handler, const unsigned char* input_block_data, unsigned long input_block_size);
-
-int create_block(const char* config_file, unsigned char* input_block_data);
+int run(void* handler, unsigned long shardId, const char* blockHash, const char* block_file_name);
 
 #ifdef __cplusplus
 }

@@ -21,8 +21,25 @@ namespace json_helpers {
     /// @brief Extract unsigned number from value
     size_t get_number(const boost::json::value &json_value) noexcept;
 
+    /// @brief Put string into the given vector bytes
+    std::optional<std::string> to_bytes(std::string &hex_string,
+                                        std::vector<uint8_t> &dst) noexcept;
+
+    /// @brief Put value into the given vector bytes
+    std::optional<std::string> to_bytes(const boost::json::value &json_value,
+                                        std::vector<uint8_t> &dst) noexcept;
+
     /// @brief Get vector of bytes from hex string
     std::vector<uint8_t> get_bytes(const boost::json::value &json_value) noexcept;
+
+    /// @brief Put string into the given vector std::bytes
+    std::optional<std::string> to_std_bytes(std::string &hex_string,
+                                            std::vector<std::byte> &dst) noexcept;
+
+    /// @brief Put value into the given vector std::bytes
+    std::optional<std::string> to_std_bytes(const boost::json::value &json_value,
+                                            std::vector<std::byte> &dst) noexcept;
+
 }  // namespace json_helpers
 
 #endif  // ZKEMV_FRAMEWORK_LIBS_JSON_HELPERS_INCLUDE_ZKEVM_FRAMEWORK_JSON_HELPERS_JSON_HELPERS_HPP_

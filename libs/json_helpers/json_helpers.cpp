@@ -69,14 +69,49 @@ namespace json_helpers {
         return json_value.as_uint64();
     }
 
-    std::vector<uint8_t> get_bytes(const boost::json::value &json_value) noexcept {
-        std::string hex_string = json_value.as_string().c_str();
-        std::vector<uint8_t> bytes;
+    std::optional<std::string> to_bytes(std::string &hex_string,
+                                        std::vector<uint8_t> &dst) noexcept {
         // Skip 0x prefix if exists
         if (hex_string[0] == '0' && hex_string[1] == 'x') {
             hex_string.erase(0, 2);
         }
-        boost::algorithm::unhex(hex_string, std::back_inserter(bytes));
+        boost::algorithm::unhex(hex_string, std::back_inserter(dst));
+        return std::nullopt;
+    }
+
+    std::optional<std::string> to_bytes(const boost::json::value &json_value,
+                                        std::vector<uint8_t> &dst) noexcept {
+        std::string hex_string = json_value.as_string().c_str();
+        auto err = to_bytes(hex_string, dst);
+        if (err) {
+            return err;
+        }
+        return std::nullopt;
+    }
+
+    std::optional<std::string> to_std_bytes(std::string &hex_string,
+                                            std::vector<std::byte> &dst) noexcept {
+        std::vector<uint8_t> bytes;
+        to_bytes(hex_string, bytes);
+        for (const auto &byte : bytes) {
+            dst.push_back(std::byte{byte});
+        }
+        return std::nullopt;
+    }
+
+    std::vector<uint8_t> get_bytes(const boost::json::value &json_value) noexcept {
+        std::vector<uint8_t> bytes;
+        to_bytes(json_value, bytes);
         return bytes;
+    }
+
+    std::optional<std::string> to_std_bytes(const boost::json::value &json_value,
+                                            std::vector<std::byte> &dst) noexcept {
+        std::vector<uint8_t> bytes;
+        to_bytes(json_value, bytes);
+        for (const auto &byte : bytes) {
+            dst.push_back(std::byte{byte});
+        }
+        return std::nullopt;
     }
 }  // namespace json_helpers

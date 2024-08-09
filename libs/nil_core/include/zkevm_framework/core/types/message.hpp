@@ -14,9 +14,10 @@
 namespace core {
     namespace types {
         enum class MessageKind : std::uint8_t {
-            Execution,
+            Internal,
             Deploy,
             Refund,
+            Bounce,
         };
 
         using Seqno = std::uint64_t;
@@ -29,8 +30,7 @@ namespace core {
             std::bitset<8> m_flags;
             ChainId m_chain_id;
             Seqno m_seqno;
-            Value m_gas_price;
-            Gas m_gas_limit;
+            Value m_feeCredit;
             Address m_from;
             Address m_to;
             Address m_refund_to;
@@ -40,8 +40,8 @@ namespace core {
             Code<24576> m_data;
             Signature<256> m_signature;
 
-            SSZ_CONT(m_flags, m_chain_id, m_seqno, m_gas_price, m_gas_limit, m_from, m_to,
-                     m_refund_to, m_bounce_to, m_value, m_currency, m_data, m_signature)
+            SSZ_CONT(m_flags, m_chain_id, m_seqno, m_feeCredit, m_from, m_to, m_refund_to,
+                     m_bounce_to, m_value, m_currency, m_data, m_signature)
         };
 
         using MessageStatus = std::uint32_t;

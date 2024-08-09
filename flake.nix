@@ -91,12 +91,12 @@
         # Default nixpkgs packages
         pkgs.python3
         pkgs.python312Packages.jsonschema
+        pkgs.python312Packages.requests
         pkgs.solc
         pkgs.valijson
         # Packages from nix-3rdparty
         (pkgs.intx.override { inherit enableDebug; })
         (pkgs.sszpp.override { inherit enableDebug; })
-        (pkgs.evmc.override { inherit enableDebug; })
         # Repo dependencies
         (evm-assigner { inherit enableDebug; })
         crypto3

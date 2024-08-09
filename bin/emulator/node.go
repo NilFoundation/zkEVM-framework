@@ -43,14 +43,14 @@ func handleStreamRead(s network.Stream) {
 
 func readData(r *bufio.Reader, runner unsafe.Pointer) {
 	for {
-		var data [502]byte
+		var data [16]byte
 		err := binary.Read(r, binary.BigEndian, &data)
 		if err != nil {
 			log.Println(err)
 			return
 		}
 
-		if C.run(runner, (*C.uchar)(&data[0]), C.ulong(502)) != 0 {
+		if C.run(runner, *(*C.ulong)(&data[0]), *(*C.ulong(&data[8]))) != 0 {
 			log.Println("run_single_thread FAILED")
 			return
 		}
@@ -62,13 +62,9 @@ func writeData(w *bufio.Writer) {
 	var counter = 0
 	config_file_name := C.CString("../assigner/example_data/call_block.json")
 	for {
-		var data [502]byte
-		if C.create_block(config_file_name, (*C.uchar)(&data[0])) != C.int(502) {
-			log.Println("write block FAILED")
-			return
-		}
-		log.Println(data[501])
-
+		// uint64_t shardId, uint64_t blockId
+		var data [16]byte
+		//TODO get IDs
 		err := binary.Write(w, binary.BigEndian, data)
 		if err != nil {
 			log.Println(err)

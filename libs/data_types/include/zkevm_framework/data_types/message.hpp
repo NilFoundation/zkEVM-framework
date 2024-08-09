@@ -15,6 +15,59 @@
 #include "zkevm_framework/data_types/transaction.hpp"
 
 namespace data_types {
+    class Message {
+      public:
+        /// @brief Transaction type
+        enum Type : uint8_t { ExecutionMessageKind, DeployMessageKind, RefundMessageKind };
+
+        Type m_flags;
+        uint64_t m_chainId;
+        uint64_t m_seqno;
+        uint64_t m_gasPrice;
+        uint64_t m_gasLimit;
+        Address m_from;
+        Address m_to;
+        Address m_refundTo;
+        Address m_bounceTo;
+        uint64_t m_value;
+        CurrencyBalance m_currency;
+        bytes m_code;
+        Signature m_signature;
+
+        Message(Type flags, uint64_t chainId, uint64_t seqno, uint64_t gasPrice, uint64_t gasLimit,
+                const Address& from, const Address& to, const Address& refundTo,
+                const Address& bounceTo, uint64_t value, const CurrencyBalance& currency,
+                bytes const& code, const Signature& signature)
+            : m_flags(flags),
+              m_chainId(chainId),
+              m_seqno(seqno),
+              m_gasPrice(gasPrice),
+              m_gasLimit(gasLimit),
+              m_from(from),
+              m_to(to),
+              m_refundTo(refundTo),
+              m_bounceTo(bounceTo),
+              m_value(value),
+              m_currency(currency),
+              m_code(code),
+              m_signature(signature) {}
+
+        /// @brief Default constructor - zero initializer
+        Message() {}
+
+        /// @returns the SSZ serialisation
+        std::expected<bytes, SerializationError> serialize() const noexcept;
+
+        /// @brief write SSZ serialization to stream
+        std::expected<void, SerializationError> serialize(std::ostream& out) const noexcept;
+
+        /// @brief deserizalize from SSZ
+        static std::expected<Message, SerializationError> deserialize(const bytes& src) noexcept;
+
+        /// @brief deserizalize from SSZ
+        static std::expected<Message, SerializationError> deserialize(std::istream& src) noexcept;
+    };
+
     class CommonMsgInfo {
       public:
         friend class InMsg;

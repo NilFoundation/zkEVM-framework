@@ -137,7 +137,7 @@ namespace {
 
     void handle_high_level_block(const std::string &key, const boost::json::value &json_value,
                                  data_types::Block &block) {
-        if (key == "previous_header") {
+        /*if (key == "previous_header") {
             iterate_object(json_value.as_object(), block.m_previousBlock, handle_block_header);
         } else if (key == "current_header") {
             iterate_object(json_value.as_object(), block.m_currentBlock, handle_block_header);
@@ -167,7 +167,7 @@ namespace {
                 iterate_object(output_message_json, block.m_outputMsgs.back(),
                                handle_message<data_types::OutMsg>);
             }
-        }
+        }*/
     }
 
     std::optional<std::string> check_json_config(const boost::json::value &json_value) {
