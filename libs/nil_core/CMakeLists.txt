@@ -12,13 +12,15 @@ if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 13.0)
     message(FATAL_ERROR "NilCore library can be built only with GCC 13+")
 endif()
 
-add_library(${LIBRARY_NAME} INTERFACE)
+add_library(${LIBRARY_NAME} SHARED)
 
-target_compile_features(${LIBRARY_NAME} INTERFACE cxx_std_23)
+add_subdirectory(src)
 
-target_include_directories(${LIBRARY_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(${LIBRARY_NAME} PUBLIC cxx_std_23)
 
-target_link_libraries(${LIBRARY_NAME} INTERFACE intx::intx sszpp::sszpp)
+target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_link_libraries(${LIBRARY_NAME} PUBLIC intx::intx sszpp::sszpp)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})

@@ -15,3 +15,4 @@ function(add_nil_core_test target)
 endfunction()
 
 add_nil_core_test(test_nil_core_ssz)
+add_nil_core_test(test_nil_core_mpt)
