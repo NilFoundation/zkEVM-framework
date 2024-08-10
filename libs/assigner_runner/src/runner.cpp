@@ -14,73 +14,6 @@
 #include "zkevm_framework/assigner_runner/write_assignments.hpp"
 
 template<typename BlueprintFieldType>
-void single_thread_runner<BlueprintFieldType>::initialize_assignments(
-    const std::vector<std::array<std::size_t, 4>>& column_sizes) {
-    // initialize assignment tables
-    BOOST_LOG_TRIVIAL(debug) << "Number assignment tables = " << column_sizes.size() << "\n";
-    for (const auto& table_column_sizes : column_sizes) {
-        nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType> desc(
-            table_column_sizes[0], table_column_sizes[1], table_column_sizes[2],
-            table_column_sizes[3]);
-        BOOST_LOG_TRIVIAL(debug) << "witnesses = " << table_column_sizes[0]
-                                 << " public inputs = " << table_column_sizes[1]
-                                 << " constants = " << table_column_sizes[2]
-                                 << " selectors = " << table_column_sizes[3] << "\n";
-        m_assignments.emplace_back(desc);
-    }
-}
-
-template<typename BlueprintFieldType>
-void single_thread_runner<BlueprintFieldType>::initialize_bytecode_circuit() {
-    using ArithmetizationType =
-        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
-    using component_type =
-        nil::blueprint::components::zkevm_bytecode<ArithmetizationType, BlueprintFieldType>;
-
-    // Prepare witness container to make an instance of the component
-    typename component_type::manifest_type m = component_type::get_manifest();
-    size_t witness_amount = *(m.witness_amount->begin());
-    std::vector<std::uint32_t> witnesses(witness_amount);
-    for (std::uint32_t i = 0; i < witness_amount; i++) {
-        witnesses[i] = i;
-    }
-
-    constexpr size_t max_code_size = 24576;
-    component_type component_instance = component_type(
-        witnesses, std::array<std::uint32_t, 1>{0}, std::array<std::uint32_t, 1>{0}, max_code_size);
-
-    auto lookup_tables = component_instance.component_lookup_tables();
-    for (auto& [k, v] : lookup_tables) {
-        m_bytecode_circuit.reserve_table(k);
-    }
-
-    // TODO: pass a proper public input here
-    typename component_type::input_type input({}, {}, typename component_type::var());
-    auto& bytecode_table =
-        m_assignments[nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX];
-    nil::blueprint::components::generate_circuit(component_instance, m_bytecode_circuit,
-                                                 bytecode_table, input, 0);
-
-    std::vector<size_t> lookup_columns_indices;
-    for (std::size_t i = 1; i < bytecode_table.constants_amount(); i++) {
-        lookup_columns_indices.push_back(i);
-    }
-
-    std::size_t cur_selector_id = 0;
-    for (const auto& gate : m_bytecode_circuit.gates()) {
-        cur_selector_id = std::max(cur_selector_id, gate.selector_index);
-    }
-    for (const auto& lookup_gate : m_bytecode_circuit.lookup_gates()) {
-        cur_selector_id = std::max(cur_selector_id, lookup_gate.tag_index);
-    }
-    cur_selector_id++;
-    nil::crypto3::zk::snark::pack_lookup_tables_horizontal(
-        m_bytecode_circuit.get_reserved_indices(), m_bytecode_circuit.get_reserved_tables(),
-        m_bytecode_circuit, bytecode_table, lookup_columns_indices, cur_selector_id,
-        bytecode_table.rows_amount(), 500000);
-}
-
-template<typename BlueprintFieldType>
 std::optional<std::string> single_thread_runner<BlueprintFieldType>::run(
     const std::string& assignment_table_file_name,
     const std::optional<OutputArtifacts>& artifacts) {
@@ -221,8 +154,10 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
     // default interface for access to the host
     const struct evmc_host_interface* host_interface = &evmc::Host::get_interface();
 
+    // TODO support multi target circuits in evm-assigner
+    std::string target_circuit = m_target_circuits.size() > 0 ? m_target_circuits[0] : "";
     ExtVMHost host(m_extractor, to_str(m_current_block.m_prev_block), tx_context, m_account_storage,
-                   assigner_ptr, m_target_circuit);
+                   assigner_ptr, target_circuit);
 
     struct evmc_host_context* ctx = host.to_context();
 
@@ -296,9 +231,9 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
                                  //<< "  gas limit = " << input_msg.m_gas_limit << "\n"
                                  << "  gas = " << gas << "\n"
                                  << "  code size = " << contract_code.size() << "\n";
-        auto res =
-            nil::evm_assigner::evaluate(host_interface, ctx, rev, &msg, contract_code.data(),
-                                        contract_code.size(), assigner_ptr, m_target_circuit);
+
+        auto res = nil::evm_assigner::evaluate(host_interface, ctx, rev, &msg, contract_code.data(),
+                                               contract_code.size(), assigner_ptr, target_circuit);
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate result = " << to_str(res.status_code) << "\n";
         if (res.status_code == EVMC_SUCCESS) {
