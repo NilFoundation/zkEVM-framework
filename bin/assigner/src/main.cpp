@@ -14,7 +14,6 @@
 
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
-#include <nil/blueprint/zkevm/bytecode.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
 #include <nil/crypto3/algebra/curves/ed25519.hpp>
 #include <nil/crypto3/algebra/curves/pallas.hpp>
@@ -24,9 +23,9 @@
 #include <nil/crypto3/zk/snark/arithmetization/plonk/constraint_system.hpp>
 #include <nil/crypto3/zk/snark/arithmetization/plonk/params.hpp>
 
-#include "assigner.hpp"
 #include "checks.hpp"
 #include "zkevm_framework/assigner_runner/runner.hpp"
+#include "zkevm_framework/preset/preset.hpp"
 
 template<typename BlueprintFieldType>
 int curve_dependent_main(uint64_t shardId, const std::string& blockHash,
@@ -34,16 +33,28 @@ int curve_dependent_main(uint64_t shardId, const std::string& blockHash,
                          const std::string& account_storage_file_name,
                          const std::string& assignment_table_file_name,
                          const std::optional<OutputArtifacts>& artifacts,
-                         const std::string& target_circuit,
-                         boost::log::trivial::severity_level log_level,
-                         std::vector<std::array<std::size_t, 4>>& column_sizes) {
+                         const std::vector<std::string>& target_circuits,
+                         boost::log::trivial::severity_level log_level) {
     using ArithmetizationType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
 
-    single_thread_runner<BlueprintFieldType> runner(column_sizes, shardId, target_circuit,
-                                                    log_level);
+    boost::log::core::get()->set_filter(boost::log::trivial::severity >= log_level);
 
-    auto err = runner.extract_block_with_messages(blockHash, block_file_name);
+    zkevm_circuits<ArithmetizationType> circuits;
+    circuits.m_names = target_circuits;
+
+    std::vector<nil::blueprint::assignment<ArithmetizationType>> assignments;
+
+    auto err = initialize_circuits<BlueprintFieldType>(circuits, assignments);
+    if (err) {
+        std::cerr << "Preset step failed: " << err.value() << std::endl;
+        return 1;
+    }
+
+    single_thread_runner<BlueprintFieldType> runner(assignments, shardId,
+                                                    circuits.get_circuit_names(), log_level);
+
+    err = runner.extract_block_with_messages(blockHash, block_file_name);
     if (err) {
         std::cerr << "Extract input block failed: " << err.value() << std::endl;
         return 1;
@@ -63,9 +74,8 @@ int curve_dependent_main(uint64_t shardId, const std::string& blockHash,
 
     // Check if bytecode table is satisfied to the bytecode constraints
     auto& bytecode_table =
-        runner.get_assignments()
-            [nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX];
-    if (!::is_satisfied<BlueprintFieldType>(runner.get_bytecode_circuit(), bytecode_table)) {
+        assignments[nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX];
+    if (!::is_satisfied<BlueprintFieldType>(circuits.m_bytecode_circuit, bytecode_table)) {
         std::cerr << "Bytecode table is not satisfied!" << std::endl;
         return 0;  // Do not produce failure for now
     }
@@ -97,7 +107,7 @@ int main(int argc, char* argv[]) {
             ("block-file,b", boost::program_options::value<std::string>(), "Predefined input block with messages")
             ("account-storage,s", boost::program_options::value<std::string>(), "Account storage config file")
             ("elliptic-curve-type,e", boost::program_options::value<std::string>(), "Native elliptic curve type (pallas, vesta, ed25519, bls12381)")
-            ("target-circuit", boost::program_options::value<std::string>(), "Fill assignment table only for one circuit (bytecode, rw)")
+            ("target-circuits", boost::program_options::value<std::vector<std::string>>(), "Fill assignment table only for certain circuits. If not set - fill assignments for all")
             ("log-level,l", boost::program_options::value<std::string>(), "Log level (trace, debug, info, warning, error, fatal)");
     // clang-format on
 
@@ -135,8 +145,8 @@ int main(int argc, char* argv[]) {
     std::string block_file_name;
     std::string account_storage_file_name;
     std::string elliptic_curve;
-    std::string target_circuit;
     std::string log_level;
+    std::vector<std::string> target_circuits;
 
     if (vm.count("assignment-tables")) {
         assignment_table_file_name = vm["assignment-tables"].as<std::string>();
@@ -194,8 +204,8 @@ int main(int argc, char* argv[]) {
         elliptic_curve = "pallas";
     }
 
-    if (vm.count("target-circuit")) {
-        target_circuit = vm["target-circuit"].as<std::string>();
+    if (vm.count("target-circuits")) {
+        target_circuits = vm["target-circuits"].as<std::vector<std::string>>();
     }
 
     if (vm.count("log-level")) {
@@ -229,26 +239,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    std::vector<std::array<std::size_t, 4>> column_sizes = {{
-                                                                65,  // witness
-                                                                1,   // public_input
-                                                                5,   // constants
-                                                                30   // selectors
-                                                            },
-                                                            {
-                                                                65,  // witness
-                                                                1,   // public_input
-                                                                5,   // constants
-                                                                30   // selectors
-                                                            }};
-
     switch (curve_options[elliptic_curve]) {
         case 0: {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::curves::pallas::base_field_type>(
                 shardId, blockHash, block_file_name, account_storage_file_name,
-                assignment_table_file_name, artifacts, target_circuit, log_options[log_level],
-                column_sizes);
+                assignment_table_file_name, artifacts, target_circuits, log_options[log_level]);
             break;
         }
         case 1: {
@@ -263,8 +259,7 @@ int main(int argc, char* argv[]) {
             return curve_dependent_main<
                 typename nil::crypto3::algebra::fields::bls12_base_field<381>>(
                 shardId, blockHash, block_file_name, account_storage_file_name,
-                assignment_table_file_name, artifacts, target_circuit, log_options[log_level],
-                column_sizes);
+                assignment_table_file_name, artifacts, target_circuits, log_options[log_level]);
             break;
         }
     };

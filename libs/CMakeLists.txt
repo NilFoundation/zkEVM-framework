@@ -1,3 +1,4 @@
+add_subdirectory(preset)
 add_subdirectory(assigner_runner)
 add_subdirectory(block_generator)
 add_subdirectory(rpc)

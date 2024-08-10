@@ -6,8 +6,6 @@ set(SOURCES
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-find_package(evm-assigner REQUIRED)
-
 add_executable(${TARGET_NAME} ${SOURCES})
 
 target_include_directories(${TARGET_NAME}
@@ -17,7 +15,7 @@ target_include_directories(${TARGET_NAME}
 
 target_link_libraries(${TARGET_NAME}
     PRIVATE
-    evm-assigner::evm-assigner
+    zkEVMPreset
     zkEVMAssignerRunner
     zkEVMJsonHelpers
     zkEVMOutputArtifacts
