@@ -1,8 +1,6 @@
 add_subdirectory(preset)
 add_subdirectory(assigner_runner)
-add_subdirectory(block_generator)
 add_subdirectory(rpc)
-add_subdirectory(data_types)
 add_subdirectory(json_helpers)
 add_subdirectory(nil_core)
 add_subdirectory(output_artifacts)

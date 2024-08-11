@@ -10,18 +10,18 @@
 template<typename BlueprintFieldType>
 class ExtVMHost : public VMHost<BlueprintFieldType> {
   public:
-    ExtVMHost(const data_types::data_extractor& extractor, const std::string& prevBlockHash)
+    ExtVMHost(const data_extractor& extractor, const std::string& prevBlockHash)
         : VMHost<BlueprintFieldType>(), m_extractor(extractor), m_prevBlockHash(prevBlockHash){};
 
-    explicit ExtVMHost(const data_types::data_extractor& extractor,
-                       const std::string& prevBlockHash, evmc_tx_context& _tx_context,
+    explicit ExtVMHost(const data_extractor& extractor, const std::string& prevBlockHash,
+                       evmc_tx_context& _tx_context,
                        std::shared_ptr<nil::evm_assigner::assigner<BlueprintFieldType>> _assigner,
                        const std::string& _target_circuit = "") noexcept
         : VMHost<BlueprintFieldType>(_tx_context, _assigner, _target_circuit),
           m_extractor(extractor),
           m_prevBlockHash(prevBlockHash) {}
 
-    ExtVMHost(const data_types::data_extractor& extractor, const std::string& prevBlockHash,
+    ExtVMHost(const data_extractor& extractor, const std::string& prevBlockHash,
               evmc_tx_context& _tx_context, evmc::accounts& _accounts,
               std::shared_ptr<nil::evm_assigner::assigner<BlueprintFieldType>> _assigner,
               const std::string& _target_circuit = "") noexcept
@@ -58,7 +58,7 @@ class ExtVMHost : public VMHost<BlueprintFieldType> {
     }
 
   private:
-    const data_types::data_extractor& m_extractor;
+    const data_extractor& m_extractor;
     const std::string m_prevBlockHash;
 };
 
