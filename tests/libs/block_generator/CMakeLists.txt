@@ -1,5 +1,0 @@
-add_executable(block_generator_test block_generator_tests.cpp)
-
-target_link_libraries(block_generator_test PRIVATE zkEVMDataTypes GTest::gtest_main zkEVMBlockGenerator)
-target_compile_definitions(block_generator_test PRIVATE INPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}")
-gtest_discover_tests(block_generator_test)

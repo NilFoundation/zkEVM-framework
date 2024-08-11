@@ -50,7 +50,7 @@ class single_thread_runner {
 
     std::vector<std::string> m_target_circuits;
     boost::log::trivial::severity_level m_log_level;
-    data_types::data_extractor m_extractor;
+    data_extractor m_extractor;
     evmc::accounts m_account_storage;
     core::types::Block m_current_block;
     std::vector<core::types::Message> m_input_messages;
