@@ -168,8 +168,6 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
 
         BOOST_LOG_TRIVIAL(debug) << "process CALL message\n  from " << to_str(input_msg.m_from)
                                  << " to " << to_str(input_msg.m_to) << "\n";
-        const auto balance = host.get_balance(to_evmc_address(input_msg.m_to));
-        std::cout << "Balance = " << to_str(balance) << "\n";
 
         if (!input_msg.m_flags.test(std::size_t(core::types::MessageKind::Internal)) &&
             input_msg.m_flags.test(std::size_t(core::types::MessageKind::Deploy))) {
@@ -199,10 +197,10 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
         const evmc_uint256be value = to_uint256be(input_msg.m_value.m_value);
         const evmc_address sender_addr = to_evmc_address(input_msg.m_from);
         const evmc_address recipient_addr = to_evmc_address(input_msg.m_to);
-        const int64_t gas = 2000;  // TODO input_msg.FeeCredit.ToGas(block.GasPrice)
+        const int64_t gas = 200000;  // TODO input_msg.FeeCredit.ToGas(block.GasPrice)
         const uint8_t input[] = "";
         struct evmc_message msg = {.kind = evmc_msg_kind(input_msg.m_flags),
-                                   .flags = uint32_t{EVMC_STATIC},
+                                   .flags = uint32_t{0},
                                    .depth = 0,
                                    .gas = gas,
                                    .recipient = recipient_addr,
