@@ -1,7 +1,10 @@
 #include "zkevm_framework/rpc/data_extractor.hpp"
 
-// #define CPPHTTPLIB_ZLIB_SUPPORT
 #include <httplib.h>
+
+#include <boost/log/core.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/trivial.hpp>
 
 std::optional<std::string> data_extractor::get_block_with_messages(
     const std::string& blockHash, std::stringstream& block_data) const {
@@ -11,11 +14,9 @@ std::optional<std::string> data_extractor::get_block_with_messages(
         "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"debug_getBlockByHash\",\"params\":[";
     body += std::to_string(m_shard_id);
     body += ",\"" + blockHash + "\",true]}";
-    std::cout << body << "\n";
+    BOOST_LOG_TRIVIAL(debug) << body << "\n";
     if (auto res = cli.Post("/", headers, body.c_str(), body.size(), "application/json")) {
-        std::cout << res->status << "\n";
-        std::cout << res->get_header_value("Content-Type") << "\n";
-        std::cout << res->body << "\n";
+        BOOST_LOG_TRIVIAL(debug) << res->body << "\n";
 
         block_data << res->body;
         return {};
@@ -34,11 +35,9 @@ std::optional<std::string> data_extractor::get_account_with_storage(
         "{\"id\":1,\"jsonrpc\":\"2.0\",\"method\":\"debug_getContract\",\"params\":[";
     body += "\"" + address + "\"";
     body += ",\"" + blockHash + "\"]}";
-    std::cout << body << "\n";
+    BOOST_LOG_TRIVIAL(debug) << body << "\n";
     if (auto res = cli.Post("/", headers, body.c_str(), body.size(), "application/json")) {
-        std::cout << res->status << "\n";
-        std::cout << res->get_header_value("Content-Type") << "\n";
-        std::cout << res->body << "\n";
+        BOOST_LOG_TRIVIAL(debug) << res->body << "\n";
 
         account_data << res->body;
         return {};

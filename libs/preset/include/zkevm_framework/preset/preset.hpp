@@ -43,10 +43,6 @@ std::optional<std::string> initialize_circuits(
             }
         }
     }
-    std::cout << "witnesses = "
-              << assignments[nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX]
-                     .witnesses_amount()
-              << "\n";
     return {};
 }
 

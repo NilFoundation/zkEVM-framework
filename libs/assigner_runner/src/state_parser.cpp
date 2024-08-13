@@ -9,7 +9,6 @@
 #include "state_schema.def"
 #include "zkevm_framework/assigner_runner/utils.hpp"
 #include "zkevm_framework/core/types/account.hpp"
-#include "zkevm_framework/core/types/node.hpp"
 #include "zkevm_framework/json_helpers/json_helpers.hpp"
 
 static std::optional<std::string> handle_code(std::string &code_str, evmc::account &account) {
@@ -24,6 +23,9 @@ static std::optional<std::string> handle_storage(const boost::json::array &stora
     auto &storage = account.storage;
     for (const auto &item : storage_json) {
         const boost::json::object &storage_elem = item.as_object();
+        if (!storage_elem.contains("Key") || !storage_elem.contains("Val")) {
+            return "Invalid storage in the JSON";
+        }
         const auto key_str = storage_elem.at("Key").as_string().c_str();
         const auto val_str = storage_elem.at("Val").as_string().c_str();
         evmc::bytes32 key = to_uint256be(intx::from_string<intx::uint256>(key_str));
@@ -103,12 +105,20 @@ std::optional<std::string> load_account_with_storage(evmc::account &account,
     if (!account_json) {
         return "Error while parsing accounts data: " + account_json.error();
     }
+    if (!account_json.value().as_object().contains("result") ||
+        !account_json.value().at("result").as_object().contains("code")) {
+        return "Account code is not found in the JSON";
+    }
     std::string code_str = account_json.value().at("result").at("code").as_string().c_str();
     auto parse_err = handle_code(code_str, account);
     if (parse_err) {
         return "Parse code failed: \n\t" + parse_err.value();
     }
 
+    if (!account_json.value().as_object().contains("result") ||
+        !account_json.value().at("result").as_object().contains("contract")) {
+        return "Contract data is not found in the JSON";
+    }
     std::string contract_str = account_json.value().at("result").at("contract").as_string().c_str();
     evmc::address address;
     parse_err = handle_account(contract_str, account, address);
@@ -116,6 +126,10 @@ std::optional<std::string> load_account_with_storage(evmc::account &account,
         return "Parse account failed: \n\t" + parse_err.value();
     }
 
+    if (!account_json.value().as_object().contains("result") ||
+        !account_json.value().at("result").as_object().contains("storage")) {
+        return "Storage is not found in the JSON";
+    }
     parse_err = handle_storage(account_json.value().at("result").at("storage").as_array(), account);
     if (parse_err) {
         return "Parse account failed: \n\t" + parse_err.value();
