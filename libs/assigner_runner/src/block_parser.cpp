@@ -13,7 +13,10 @@
 template<typename T>
 std::optional<std::string> to_std_bytes(const boost::json::value &json_value, T &dst) noexcept {
     std::vector<uint8_t> bytes;
-    json_helpers::to_bytes(json_value, bytes);
+    auto err = json_helpers::to_bytes(json_value, bytes);
+    if (err) {
+        return err;
+    }
     for (std::size_t i = 0; i < bytes.size(); i++) {
         dst[i] = std::byte{bytes[i]};
     }
@@ -35,12 +38,22 @@ static std::optional<std::string> handle_message(const boost::json::object &val,
             message.m_flags.set(std::size_t(core::types::MessageKind::Bounce));
         }
     }
-    to_std_bytes<core::types::Address>(val.at("from"), message.m_from);
-    to_std_bytes<core::types::Address>(val.at("to"), message.m_to);
+    auto err = to_std_bytes<core::types::Address>(val.at("from"), message.m_from);
+    if (err) {
+        return err;
+    }
+    err = to_std_bytes<core::types::Address>(val.at("to"), message.m_to);
+    if (err) {
+        return err;
+    }
+    message.m_feeCredit.m_value = val.at("feeCredit").as_int64();
     std::string value_str = val.at("value").as_string().c_str();
     message.m_value.m_value = intx::from_string<intx::uint256>(value_str);
     std::vector<std::byte> data_bytes;
-    json_helpers::to_std_bytes(val.at("data"), data_bytes);
+    err = json_helpers::to_std_bytes(val.at("data"), data_bytes);
+    if (err) {
+        return err;
+    }
     message.m_data.data() = data_bytes;
     return {};
 }
@@ -50,6 +63,7 @@ static std::optional<std::string> handle_block(const boost::json::object &val,
                                                std::vector<core::types::Message> &messages) {
     block.m_id = val.at("number").as_int64();
     to_std_bytes<core::Hash>(val.at("parentHash"), block.m_prev_block);
+    block.m_gasPrice.m_value = val.at("gasPrice").as_int64();
 
     const auto &json_input_msgs = val.at("messages").as_array();
     for (const auto &msg : json_input_msgs) {
@@ -84,6 +98,44 @@ std::optional<std::string> load_block_with_messages(core::types::Block &block,
     auto parse_block_err = handle_block(block_json.value().as_object(), block, messages);
     if (parse_block_err) {
         return "Parse block failed: \n\t" + parse_block_err.value();
+    }
+    return {};
+}
+
+std::optional<std::string> load_raw_block_with_messages(core::types::Block &block,
+                                                        std::vector<core::types::Message> &messages,
+                                                        std::istream &block_data) {
+    auto block_json = json_helpers::parse_json(block_data);
+    if (!block_json) {
+        return "Error while parsing block: " + block_json.error();
+    }
+    if (!block_json.value().as_object().contains("result") ||
+        !block_json.value().at("result").as_object().contains("content")) {
+        return "Block content not found in the JSON";
+    }
+    std::vector<std::byte> block_bytes;
+    std::string block_data_str = block_json.value().at("result").at("content").as_string().c_str();
+    auto deserialize_err = json_helpers::to_std_bytes(block_data_str, block_bytes);
+    if (deserialize_err) {
+        return "Extract block bytes failed: " + deserialize_err.value();
+    }
+    block = ssz::deserialize<core::types::Block>(block_bytes);
+
+    if (!block_json.value().as_object().contains("result") ||
+        !block_json.value().at("result").as_object().contains("inMessages")) {
+        return "Input messages not found in the JSON";
+    }
+    const auto &json_input_msgs = block_json.value().at("result").at("inMessages").as_array();
+    for (const auto &msg : json_input_msgs) {
+        core::types::Message message;
+        std::string msg_str = msg.as_string().c_str();
+        std::vector<std::byte> msg_bytes;
+        deserialize_err = json_helpers::to_std_bytes(msg_str, msg_bytes);
+        if (deserialize_err) {
+            return "Extract message bytes failed: " + deserialize_err.value();
+        }
+        message = ssz::deserialize<core::types::Message>(msg_bytes);
+        messages.push_back(message);
     }
     return {};
 }

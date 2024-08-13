@@ -12,8 +12,8 @@ if(ENABLE_EXECUTABLES_TESTS)
         --log-level debug
         DEPENDS
         $<TARGET_FILE:assigner>
-        block.json
-        state.json
+        ${CMAKE_SOURCE_DIR}/bin/assigner/example_data/call_block.json
+        ${CMAKE_SOURCE_DIR}/bin/assigner/example_data/state.json
         COMMENT "Running assigner integration test"
         VERBATIM
     )

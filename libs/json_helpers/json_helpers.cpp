@@ -75,7 +75,11 @@ namespace json_helpers {
         if (hex_string[0] == '0' && hex_string[1] == 'x') {
             hex_string.erase(0, 2);
         }
-        boost::algorithm::unhex(hex_string, std::back_inserter(dst));
+        try {
+            boost::algorithm::unhex(hex_string, std::back_inserter(dst));
+        } catch (...) {
+            return "Hex string to bytes failed";
+        }
         return std::nullopt;
     }
 

@@ -35,7 +35,7 @@ TEST(NilCoreSSZTests, Hash) {
 TEST(NilCoreSSZTests, SmartContract) {
     SmartContract x{};
     x.m_address = {std::byte{0xAA}};
-    x.m_balance = Value{m_value : 42};
+    x.m_balance = Value{.m_value = 42};
     x.m_code_hash = {std::byte{0xBB}};
     x.m_currency_root = {std::byte{0xCC}};
     x.m_ext_seqno = 43;
@@ -64,7 +64,7 @@ TEST(NilCoreSSZTests, Block) {
     x.m_receipts_root = {std::byte{0x11}};
     x.m_smart_contracts_root = {std::byte{0x22}};
     x.m_timestamp = 44;
-    x.m_gasPrice = Value{m_value : 100};
+    x.m_gasPrice = Value{.m_value = 100};
     test_serialization(x);
 }
 
@@ -75,7 +75,7 @@ TEST(NilCoreSSZTests, Bloom) {
 
 TEST(NilCoreSSZTests, CurrencyBalance) {
     CurrencyBalance x{};
-    x.m_balance = Value{m_value : 42};
+    x.m_balance = Value{.m_value = 42};
     x.m_currency = {std::byte{0xAA}};
     test_serialization(x);
 }
@@ -92,18 +92,17 @@ TEST(NilCoreSSZTests, Message) {
     Message x{};
     x.m_flags = 0b10101010;
     x.m_chain_id = 42;
-    x.m_bounce_to = {std::byte{0xAA}};
     x.m_seqno = 47;
-    x.m_feeCredit = Value{m_value : 2000000};
+    x.m_feeCredit = Value{.m_value = 2000000};
     x.m_from = {std::byte{0xEE}};
     x.m_to = {std::byte{0x22}};
     x.m_refund_to = {std::byte{0xFF}};
     x.m_bounce_to = {std::byte{0xFF}};
-    x.m_value = Value{m_value : 100};
+    x.m_value = Value{.m_value = 100};
     x.m_currency = std::vector{CurrencyBalance{}, CurrencyBalance{}};
-    x.m_currency[0].m_balance = Value{m_value : 43};
+    x.m_currency[0].m_balance = Value{.m_value = 43};
     x.m_currency[0].m_currency = {std::byte{0xBB}};
-    x.m_currency[1].m_balance = Value{m_value : 44};
+    x.m_currency[1].m_balance = Value{.m_value = 44};
     x.m_currency[1].m_currency = {std::byte{0xCC}};
     x.m_data = {{std::vector{std::byte{0xDD}, std::byte{0xDD}, std::byte{0xDD}}}};
     x.m_signature = {{std::vector{std::byte{0x11}, std::byte{0x11}, std::byte{0x11}}}};
@@ -139,6 +138,6 @@ TEST(NilCoreSSZTests, Receipt) {
 }
 
 TEST(NilCoreSSZTests, Value) {
-    Value x{m_value : 42};
+    Value x{.m_value = 42};
     test_serialization(x);
 }

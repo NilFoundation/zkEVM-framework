@@ -10,6 +10,9 @@
             "type": "string",
             "pattern": "^0x[0-9a-f]+$"
         },
+        "gasPrice": {
+            "type": "number"
+        },
         "messages": {
             "type": "array",
             "items": {
@@ -18,16 +21,23 @@
                     "flags": {
                         "type": "array",
                         "items": {
-                            "type": "string"
+                            "enum": ["Internal", "Deploy", "Refund", "Bounce"]
                         }
                     },
                     "from": {
                         "type": "string",
-                        "pattern": "^0x[0-9a-fA-F]+$"
+                        "pattern": "^0x[0-9a-fA-F]+$",
+                        "minLength": 42,
+                        "maxLength": 42
                     },
-                    "fo": {
+                    "to": {
                         "type": "string",
-                        "pattern": "^0x[0-9a-fA-F]+$"
+                        "pattern": "^0x[0-9a-fA-F]+$",
+                        "minLength": 42,
+                        "maxLength": 42
+                    },
+                    "feeCredit": {
+                        "type": "number"
                     },
                     "value": {
                         "type": "string"
@@ -37,12 +47,12 @@
                         "pattern": "^0x[0-9a-fA-F]+$"
                     }
                 },
-                "required": ["flags", "from", "to", "value", "data"],
+                "required": ["flags", "from", "to", "feeCredit", "value", "data"],
                 "additionalProperties": true
             },
             "uniqueItems": true
         }
     },
-    "required": ["number", "parentHash", "messages"],
+    "required": ["number", "parentHash", "gasPrice", "messages"],
     "additionalProperties": true
 }

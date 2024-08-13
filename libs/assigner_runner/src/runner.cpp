@@ -61,7 +61,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::extract_blo
         if (err) {
             return err;
         }
-        err = load_block_with_messages(m_current_block, m_input_messages, block_data);
+        err = load_raw_block_with_messages(m_current_block, m_input_messages, block_data);
         if (err) {
             return err;
         }
@@ -105,6 +105,7 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
         << "  child block root hash = " << to_str(m_current_block.m_child_blocks_root_hash) << "\n"
         << "  master chain hash = " << to_str(m_current_block.m_master_chain_hash) << "\n"
         << "  timestamp = " << m_current_block.m_timestamp << "\n"
+        << "  gas price = " << m_current_block.m_gasPrice.m_value[0] << "\n"
         << "\n";
 
     if (m_log_level <= boost::log::trivial::debug) {
@@ -197,7 +198,8 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
         const evmc_uint256be value = to_uint256be(input_msg.m_value.m_value);
         const evmc_address sender_addr = to_evmc_address(input_msg.m_from);
         const evmc_address recipient_addr = to_evmc_address(input_msg.m_to);
-        const int64_t gas = 200000;  // TODO input_msg.FeeCredit.ToGas(block.GasPrice)
+        const int64_t gas =
+            (input_msg.m_feeCredit.m_value / (m_current_block.m_gasPrice.m_value[0]))[0];
         const uint8_t input[] = "";
         struct evmc_message msg = {.kind = evmc_msg_kind(input_msg.m_flags),
                                    .flags = uint32_t{0},
@@ -223,10 +225,10 @@ std::optional<std::string> single_thread_runner<BlueprintFieldType>::fill_assign
 
         BOOST_LOG_TRIVIAL(debug) << "evaluate transaction\n"
                                  << "  type = " << to_str(input_msg.m_flags) << "\n"
-                                 << "  value = " << input_msg.m_value.m_value[0]
+                                 << "  value = " << input_msg.m_value.m_value[0] << "\n"
+                                 << "  gas price = " << m_current_block.m_gasPrice.m_value[0]
                                  << "\n"
-                                 //<< "  gas price = " << input_msg.m_gas_price.m_value[0] << "\n"
-                                 //<< "  gas limit = " << input_msg.m_gas_limit << "\n"
+                                 << "  free credit = " << input_msg.m_feeCredit.m_value[0] << "\n"
                                  << "  gas = " << gas << "\n"
                                  << "  code size = " << contract_code.size() << "\n";
 
