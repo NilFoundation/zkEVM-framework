@@ -28,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1723635404,
-        "narHash": "sha256-iY6HfDSVam3ga9h06PaY6mMWfUu0L9VuYaRGXksEHN8=",
+        "lastModified": 1723732583,
+        "narHash": "sha256-a1C/eTLzrqkLpHjYKhCScvbckcBjL6UP/vLPnaaVgXA=",
         "ref": "refs/heads/main",
-        "rev": "37e1ccf2beea796fcd31d5fc91c5cf11c1a0c118",
-        "revCount": 1141,
+        "rev": "e2858f2c137942d4fadde04d1dcef6613d6c44ff",
+        "revCount": 1158,
         "type": "git",
         "url": "ssh://git@github.com/NilFoundation/nil"
       },
