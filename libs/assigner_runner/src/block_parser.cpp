@@ -46,7 +46,7 @@ static std::optional<std::string> handle_message(const boost::json::object &val,
     if (err) {
         return err;
     }
-    message.m_feeCredit.m_value = val.at("feeCredit").as_int64();
+    message.m_feeCredit.m_value = std::stoull(val.at("feeCredit").as_string().c_str());
     std::string value_str = val.at("value").as_string().c_str();
     message.m_value.m_value = intx::from_string<intx::uint256>(value_str);
     std::vector<std::byte> data_bytes;
@@ -63,7 +63,7 @@ static std::optional<std::string> handle_block(const boost::json::object &val,
                                                std::vector<core::types::Message> &messages) {
     block.m_id = val.at("number").as_int64();
     to_std_bytes<core::Hash>(val.at("parentHash"), block.m_prev_block);
-    block.m_gasPrice.m_value = val.at("gasPrice").as_int64();
+    block.m_gasPrice.m_value = std::stoull(val.at("gasPrice").as_string().c_str());
 
     const auto &json_input_msgs = val.at("messages").as_array();
     for (const auto &msg : json_input_msgs) {

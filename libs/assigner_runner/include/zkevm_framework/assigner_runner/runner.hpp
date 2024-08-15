@@ -1,6 +1,7 @@
 #ifndef ZKEMV_FRAMEWORK_LIBS_ASSIGNER_RUNNER_INCLUDE_ZKEVM_FRAMEWORK_ASSIGNER_RUNNER_RUNNER_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_ASSIGNER_RUNNER_INCLUDE_ZKEVM_FRAMEWORK_ASSIGNER_RUNNER_RUNNER_HPP_
 
+#include <unordered_map>
 #include <boost/log/core.hpp>
 #include <boost/log/expressions.hpp>
 #include <boost/log/trivial.hpp>
@@ -19,7 +20,7 @@ class single_thread_runner {
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
 
     /// @brief Initialize runner with empty input block and account storage
-    single_thread_runner(std::vector<nil::blueprint::assignment<ArithmetizationType>>& assignments,
+    single_thread_runner(std::unordered_map<uint8_t, nil::blueprint::assignment<ArithmetizationType>>& assignments,
                          uint64_t shard_id = 0,
                          const std::vector<std::string>& target_circuits = {},
                          boost::log::trivial::severity_level log_level = boost::log::trivial::info)
@@ -46,7 +47,7 @@ class single_thread_runner {
   private:
     std::optional<std::string> fill_assignments();
 
-    std::vector<nil::blueprint::assignment<ArithmetizationType>>& m_assignments;
+    std::unordered_map<uint8_t, nil::blueprint::assignment<ArithmetizationType>>& m_assignments;
 
     std::vector<std::string> m_target_circuits;
     boost::log::trivial::severity_level m_log_level;

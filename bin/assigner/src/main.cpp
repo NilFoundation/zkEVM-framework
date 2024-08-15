@@ -12,6 +12,7 @@
 #define BOOST_SYSTEM_NO_DEPRECATED
 #endif
 
+#include <unordered_map>
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
 #include <nil/crypto3/algebra/curves/bls12.hpp>
@@ -43,7 +44,7 @@ int curve_dependent_main(uint64_t shardId, const std::string& blockHash,
     zkevm_circuits<ArithmetizationType> circuits;
     circuits.m_names = target_circuits;
 
-    std::vector<nil::blueprint::assignment<ArithmetizationType>> assignments;
+    std::unordered_map<uint8_t, nil::blueprint::assignment<ArithmetizationType>> assignments;
 
     auto err = initialize_circuits<BlueprintFieldType>(circuits, assignments);
     if (err) {
@@ -73,8 +74,12 @@ int curve_dependent_main(uint64_t shardId, const std::string& blockHash,
     }
 
     // Check if bytecode table is satisfied to the bytecode constraints
-    auto& bytecode_table =
-        assignments[nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX];
+    auto it = assignments.find(nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX);
+    if (it == assignments.end()) {
+        std::cerr << "Can;t find bytecode assignment table\n";
+        return 1;
+    }
+    auto& bytecode_table = it->second;
     if (!::is_satisfied<BlueprintFieldType>(circuits.m_bytecode_circuit, bytecode_table)) {
         std::cerr << "Bytecode table is not satisfied!" << std::endl;
         return 0;  // Do not produce failure for now

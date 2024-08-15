@@ -17,11 +17,8 @@
                         "pattern": "^0x[0-9a-fA-F]+$"
                     },
                     "proof": {
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "pattern": "^0x[0-9a-f]+$"
-                        }
+                        "type": "string",
+                        "pattern": "^0x[0-9a-f]+$"
                     },
                     "storage": {
                         "type" : "array",

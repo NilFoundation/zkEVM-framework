@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <unordered_map>
 #include <boost/log/trivial.hpp>
 #include <fstream>
 #include <nil/crypto3/algebra/curves/pallas.hpp>
@@ -15,7 +16,7 @@ TEST(runner_test, check_block) {
 
     zkevm_circuits<ArithmetizationType> circuits;
 
-    std::vector<nil::blueprint::assignment<ArithmetizationType>> assignments;
+    std::unordered_map<uint8_t, nil::blueprint::assignment<ArithmetizationType>> assignments;
 
     auto err = initialize_circuits<BlueprintFieldType>(circuits, assignments);
     ASSERT_FALSE(err.has_value());
