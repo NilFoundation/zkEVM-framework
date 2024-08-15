@@ -11,7 +11,8 @@
             "pattern": "^0x[0-9a-f]+$"
         },
         "gasPrice": {
-            "type": "number"
+            "type": "string",
+            "pattern": "^[0-9]+$"
         },
         "messages": {
             "type": "array",
@@ -37,7 +38,8 @@
                         "maxLength": 42
                     },
                     "feeCredit": {
-                        "type": "number"
+                        "type": "string",
+                        "pattern": "^[0-9]+$"
                     },
                     "value": {
                         "type": "string"

@@ -15,6 +15,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 #include "nil/blueprint/blueprint/plonk/assignment.hpp"
 #include "nil/crypto3/marshalling/algebra/types/field_element.hpp"
@@ -163,17 +164,16 @@ void write_binary_assignment(const nil::blueprint::assignment<ArithmetizationTyp
  */
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
 std::optional<std::string> write_binary_assignments(
-    const std::vector<nil::blueprint::assignment<ArithmetizationType>>& assignments,
+    const std::unordered_map<uint8_t, nil::blueprint::assignment<ArithmetizationType>>& assignments,
     const std::string& basefilename) {
-    for (auto i = 0; i < assignments.size(); ++i) {
-        const auto& assignment = assignments[i];
-        std::string filename = basefilename + "." + std::to_string(i);
+    for (const auto& assignment : assignments) {
+        std::string filename = basefilename + "." + std::to_string(assignment.first);
         std::ofstream fout(filename, std::ios_base::binary | std::ios_base::out);
         if (!fout.is_open()) {
             return "Cannot open " + filename;
         }
-        BOOST_LOG_TRIVIAL(debug) << "writing table " << i << " into file " << filename;
-        write_binary_assignment<Endianness, ArithmetizationType, BlueprintFieldType>(assignment,
+        BOOST_LOG_TRIVIAL(debug) << "writing table " << assignment.first << " into file " << filename;
+        write_binary_assignment<Endianness, ArithmetizationType, BlueprintFieldType>(assignment.second,
                                                                                      fout);
         fout.close();
     }
@@ -185,7 +185,7 @@ std::optional<std::string> write_binary_assignments(
  */
 template<typename Endianness, typename ArithmetizationType, typename BlueprintFieldType>
 std::optional<std::string> write_output_artifacts(
-    const std::vector<nil::blueprint::assignment<ArithmetizationType>>& assignments,
+    const std::unordered_map<uint8_t, nil::blueprint::assignment<ArithmetizationType>>& assignments,
     const OutputArtifacts& artifacts) {
     BOOST_LOG_TRIVIAL(debug) << "\n";
     BOOST_LOG_TRIVIAL(debug) << "writing output artifacts to " << artifacts.basename;
@@ -216,7 +216,11 @@ std::optional<std::string> write_output_artifacts(
 
     for (const auto& [lower, upper] : tables) {
         for (std::size_t i = lower; i <= upper; ++i) {
-            auto assignment = assignments[i];
+            auto it = assignments.find(i);
+            if (it == assignments.end()) {
+                return "Can't find assignment table " + std::to_string(i);
+            }
+            auto assignment = it->second;
 
             Ranges::ConcreteRanges witnesses = {};
             if (!artifacts.witness_columns.empty()) {

@@ -14,8 +14,8 @@ template<typename BlueprintFieldType>
 std::optional<std::string> initialize_bytecode_circuit(
     nil::blueprint::circuit<nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>&
         bytecode_circuit,
-    nil::blueprint::assignment<
-        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>& bytecode_table) {
+    std::unordered_map<uint8_t, nil::blueprint::assignment<
+        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>>& assignments) {
     // initialize assignment table
     nil::crypto3::zk::snark::plonk_table_description<BlueprintFieldType> desc(65,  // witness
                                                                               1,   // public
@@ -30,7 +30,9 @@ std::optional<std::string> initialize_bytecode_circuit(
     using ArithmetizationType =
         nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>;
 
-    bytecode_table = nil::blueprint::assignment<ArithmetizationType>(desc);
+    auto insert_it = assignments.insert(std::pair<uint8_t, nil::blueprint::assignment<ArithmetizationType>>(nil::evm_assigner::assigner<BlueprintFieldType>::BYTECODE_TABLE_INDEX,
+                                                                                           nil::blueprint::assignment<ArithmetizationType>(desc)));
+    auto &bytecode_table = insert_it.first->second;
 
     using component_type =
         nil::blueprint::components::zkevm_bytecode<ArithmetizationType, BlueprintFieldType>;
