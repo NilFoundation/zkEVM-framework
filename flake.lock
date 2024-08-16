@@ -28,11 +28,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1723102102,
-        "narHash": "sha256-OU9NBgaxutklVq068wNj/rQ3Cy0gtXIHi7Fsc/BUE0Y=",
+        "lastModified": 1723842830,
+        "narHash": "sha256-wWwnB9Rg4nxfvEoBHrXL3TC9rbe3oNK9r3/1lTaqy/k=",
         "ref": "refs/heads/main",
-        "rev": "42b128439a3a54d59db4b94fad7a21a820a20846",
-        "revCount": 1062,
+        "rev": "94d40b0b2c8f9685076b6c7e6e714d7e6f1d9304",
+        "revCount": 1178,
         "type": "git",
         "url": "https://github.com/NilFoundation/nil"
       },
@@ -85,11 +85,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1723538445,
-        "narHash": "sha256-D60ZI4EWyW+1CCW93CpodFDj9+QTmYSnMoCH4BtpywU=",
+        "lastModified": 1723821606,
+        "narHash": "sha256-h6u1CvIOOLmLqoPmslEm9lCljaJAXJLizOI5dNdaPYo=",
         "owner": "NilFoundation",
         "repo": "evm-assigner",
-        "rev": "1506df3c15f875785aaf85790d8242a2be221f9b",
+        "rev": "d992095e50f5b360825afc4446f980675099eb01",
         "type": "github"
       },
       "original": {

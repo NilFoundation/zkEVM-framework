@@ -142,13 +142,35 @@ std::expected<std::array<Ranges, 4>, std::string> parse_columns(
     return result;
 }
 
+std::string OutputArtifacts::tables_to_string() const {
+    std::string result;
+    for (const auto& table : tables) {
+        result += " " + std::to_string((int)table) + " ";
+    }
+    return result;
+}
+
+std::expected<std::vector<nil::evm_assigner::zkevm_circuit>, std::string>
+OutputArtifacts::parse_tables(const std::vector<std::string>& s) {
+    std::vector<nil::evm_assigner::zkevm_circuit> result;
+    for (const auto& table_name : s) {
+        auto it = nil::evm_assigner::zkevm_circuits_map.find(table_name);
+        if (it != nil::evm_assigner::zkevm_circuits_map.end()) {
+            result.push_back(it->second);
+        } else {
+            return std::unexpected(std::string("Unknown table name " + table_name));
+        }
+    }
+    return result;
+}
+
 std::expected<OutputArtifacts, std::string> OutputArtifacts::from_program_options(
     boost::program_options::variables_map vm) {
     OutputArtifacts artifacts;
     artifacts.basename = vm["output-text"].as<std::string>();
 
     if (vm.count("tables")) {
-        auto maybe_tables = Ranges::parse(vm["tables"].as<std::string>());
+        auto maybe_tables = parse_tables(vm["tables"].as<std::vector<std::string>>());
         if (!maybe_tables.has_value()) {
             return std::unexpected(maybe_tables.error());
         }

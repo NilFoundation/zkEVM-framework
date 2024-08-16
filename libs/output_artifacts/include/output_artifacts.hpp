@@ -7,6 +7,7 @@
 #ifndef ZKEMV_FRAMEWORK_LIBS_OUTPUT_ARTIFACTS_INCLUDE_OUTPUT_ARTIFACTS_HPP_
 #define ZKEMV_FRAMEWORK_LIBS_OUTPUT_ARTIFACTS_INCLUDE_OUTPUT_ARTIFACTS_HPP_
 
+#include <assigner.hpp>
 #include <cstdint>
 #include <expected>
 #include <optional>
@@ -100,7 +101,7 @@ struct OutputArtifacts {
     std::string basename;
 
     /// @brief Indices of the table to write.
-    Ranges tables;
+    std::vector<nil::evm_assigner::zkevm_circuit> tables;
 
     /// @brief Rows in every table to write.
     Ranges rows;
@@ -129,6 +130,14 @@ struct OutputArtifacts {
 
     /// @brief Whether write output into stdout or into file.
     bool to_stdout() const { return basename == "-"; }
+
+    std::string tables_to_string() const;
+
+    /**
+     * @brief Parse table names from string.
+     */
+    static std::expected<std::vector<nil::evm_assigner::zkevm_circuit>, std::string> parse_tables(
+        const std::vector<std::string>& s);
 
     /**
      * @brief Parse program options and construct output artifacts description from it.
