@@ -25,8 +25,10 @@ struct zkevm_circuits {
 template<typename BlueprintFieldType>
 std::optional<std::string> initialize_circuits(
     zkevm_circuits<nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>& circuits,
-    std::unordered_map<uint8_t, nil::blueprint::assignment<
-        nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>>& assignments) {
+    std::unordered_map<nil::evm_assigner::zkevm_circuit,
+                       nil::blueprint::assignment<
+                           nil::crypto3::zk::snark::plonk_constraint_system<BlueprintFieldType>>>&
+        assignments) {
     const auto& circuit_names = circuits.get_circuit_names();
     BOOST_LOG_TRIVIAL(debug) << "Number assignment tables = " << circuit_names.size() << "\n";
     for (const auto& circuit_name : circuit_names) {

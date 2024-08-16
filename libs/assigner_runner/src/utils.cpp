@@ -21,18 +21,10 @@ evmc_call_kind evmc_msg_kind(const std::bitset<8>& type) {
 }
 
 evmc_address to_evmc_address(const core::types::Address& v) {
-    evmc_address res = {
-        std::to_integer<uint8_t>(v[0]),  std::to_integer<uint8_t>(v[1]),
-        std::to_integer<uint8_t>(v[2]),  std::to_integer<uint8_t>(v[3]),
-        std::to_integer<uint8_t>(v[4]),  std::to_integer<uint8_t>(v[5]),
-        std::to_integer<uint8_t>(v[6]),  std::to_integer<uint8_t>(v[7]),
-        std::to_integer<uint8_t>(v[8]),  std::to_integer<uint8_t>(v[9]),
-        std::to_integer<uint8_t>(v[10]), std::to_integer<uint8_t>(v[11]),
-        std::to_integer<uint8_t>(v[12]), std::to_integer<uint8_t>(v[13]),
-        std::to_integer<uint8_t>(v[14]), std::to_integer<uint8_t>(v[15]),
-        std::to_integer<uint8_t>(v[16]), std::to_integer<uint8_t>(v[17]),
-        std::to_integer<uint8_t>(v[18]), std::to_integer<uint8_t>(v[19]),
-    };
+    evmc_address res;
+    for (std::size_t i = 0; i < core::types::ADDR_SIZE; i++) {
+        res.bytes[i] = std::to_integer<uint8_t>(v[i]);
+    }
     return res;
 }
 
