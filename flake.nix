@@ -23,14 +23,6 @@
         nil-zkllvm-blueprint.follows = "nil-zkllvm-blueprint";
       };
     };
-    nil-cluster = {
-      type = "git";  # 'git' is required here, for 'github' we cannot compute cluster version via git history
-      url = "https://github.com/NilFoundation/nil";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
-      };
-    };
     nil-crypto3 = {
       type = "github";
       owner = "NilFoundation";
@@ -63,7 +55,6 @@
     , nil-evm-assigner
     , nil-crypto3
     , nil-zkllvm-blueprint
-    , nil-cluster
     }:
     flake-utils.lib.eachDefaultSystem (system:
     let
@@ -77,7 +68,6 @@
 
       crypto3 = nil-crypto3.packages.${system}.default;
       blueprint = nil-zkllvm-blueprint.packages.${system}.default;
-      cluster = nil-cluster.packages.${system}.default;
 
       # Default env will bring us GCC 13 as default compiler
       stdenv = pkgs.stdenv;
@@ -103,7 +93,6 @@
         blueprint
         # Blueprint will propagate Boost library.
         # We don't include it here explicitly to reuse the same version.
-        cluster
       ];
 
       defaultCheckInputs = [
@@ -113,13 +102,6 @@
       defaultDevTools = [
         pkgs.doxygen
         pkgs.clang_17 # clang-format and clang-tidy
-        pkgs.go_1_22
-        pkgs.gotools
-        pkgs.go-tools
-        pkgs.gopls
-        pkgs.golangci-lint
-        pkgs.gofumpt
-        pkgs.gci
       ];
 
       releaseBuild = stdenv.mkDerivation {

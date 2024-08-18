@@ -69,5 +69,6 @@ if(ENABLE_EXECUTABLES_TESTS)
         COMMENT "Running assigner integration test"
         VERBATIM
     )
-    add_dependencies(executables_tests assigner_integration_test)
+    # TODO move integration test to the nil repository
+    #add_dependencies(executables_tests assigner_integration_test)
 endif()
