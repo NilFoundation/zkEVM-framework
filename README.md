@@ -36,7 +36,6 @@ Framework for test verification of state of cluster based on EVM
 * =nil; crypto3 [Repository](https://github.com/NilFoundation/crypto3)
 * =nil; zkllvm-blueprint [Repository](https://github.com/NilFoundation/zkllvm-blueprint)
 * =nil; evm-assigner [Repository](https://github.com/NilFoundation/evm-assigner)
-* =nil; cluster [Repository](https://github.com/NilFoundation/nil)
 * Valijson [Repository](https://github.com/tristanpenman/valijson)
 
 ## Clone
@@ -191,6 +190,8 @@ nix run .#assigner [-L] [--override-input nil-evm-assigner /path_to/evm-assigner
 ### Block generation
 
 Test block could be generated from config file in JSON format
+
+WARNING: for use block_generator script need to clone and build `nil` [repository](https://github.com/NilFoundation/nil). Make sure if `nild` and `nil` in PATH.
 
 ```bash
 nix run .#block_gen [-L] -- -i bin/assigner/example_data/call_block.json -o call_block.ssz

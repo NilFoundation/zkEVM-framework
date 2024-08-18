@@ -29,9 +29,6 @@ namespace json_helpers {
     std::optional<std::string> to_bytes(const boost::json::value &json_value,
                                         std::vector<uint8_t> &dst) noexcept;
 
-    /// @brief Get vector of bytes from hex string
-    std::vector<uint8_t> get_bytes(const boost::json::value &json_value) noexcept;
-
     /// @brief Put string into the given vector std::bytes
     std::optional<std::string> to_std_bytes(std::string &hex_string,
                                             std::vector<std::byte> &dst) noexcept;

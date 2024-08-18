@@ -96,23 +96,23 @@ namespace json_helpers {
     std::optional<std::string> to_std_bytes(std::string &hex_string,
                                             std::vector<std::byte> &dst) noexcept {
         std::vector<uint8_t> bytes;
-        to_bytes(hex_string, bytes);
+        auto err = to_bytes(hex_string, bytes);
+        if (err) {
+            return err;
+        }
         for (const auto &byte : bytes) {
             dst.push_back(std::byte{byte});
         }
         return std::nullopt;
     }
 
-    std::vector<uint8_t> get_bytes(const boost::json::value &json_value) noexcept {
-        std::vector<uint8_t> bytes;
-        to_bytes(json_value, bytes);
-        return bytes;
-    }
-
     std::optional<std::string> to_std_bytes(const boost::json::value &json_value,
                                             std::vector<std::byte> &dst) noexcept {
         std::vector<uint8_t> bytes;
-        to_bytes(json_value, bytes);
+        auto err = to_bytes(json_value, bytes);
+        if (err) {
+            return err;
+        }
         for (const auto &byte : bytes) {
             dst.push_back(std::byte{byte});
         }

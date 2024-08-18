@@ -42,9 +42,6 @@ class single_thread_runner {
     std::optional<std::string> extract_block_with_messages(const std::string& blockHash,
                                                            const std::string& block_file_name);
 
-    /// @brief Set target circuit
-    void set_target_circuit(const std::string target_circuit);
-
   private:
     std::optional<std::string> fill_assignments();
 
