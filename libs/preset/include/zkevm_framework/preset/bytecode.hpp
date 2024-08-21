@@ -77,8 +77,8 @@ std::optional<std::string> initialize_bytecode_circuit(
     cur_selector_id++;
     nil::crypto3::zk::snark::pack_lookup_tables_horizontal(
         bytecode_circuit.get_reserved_indices(), bytecode_circuit.get_reserved_tables(),
-        bytecode_circuit, bytecode_table, lookup_columns_indices, cur_selector_id,
-        bytecode_table.rows_amount(), 500000);
+        bytecode_circuit.get_reserved_dynamic_tables(), bytecode_circuit, bytecode_table,
+        lookup_columns_indices, cur_selector_id, bytecode_table.rows_amount(), 500000);
     // TODO bytecode_table.rows_amount() = 0 here, it's correct?'
     return {};
 }
