@@ -88,15 +88,6 @@
             sszpp = sszpp;
             runTests = true;
           });
-          clang = (pkgs.callPackage ./zkevm-framework.nix {
-            stdenv = pkgs.llvmPackages_18.stdenv;
-            src_repo = self;
-            crypto3 = crypto3;
-            evm-assigner = evm-assigner;
-            intx = intx;
-            sszpp = sszpp;
-            runTests = true;
-          });
           default = gcc;
         };
       apps = rec {
