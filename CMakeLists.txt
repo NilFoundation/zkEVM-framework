@@ -10,6 +10,8 @@ include(GNUInstallDirs)
 option(BUILD_DOCS "Build documentation" FALSE)
 option(ENABLE_TESTS "Enable tests" FALSE)
 
+find_package(Boost REQUIRED COMPONENTS container random filesystem log log_setup program_options thread system unit_test_framework timer)
+
 add_subdirectory(libs)
 add_subdirectory(bin)
 
