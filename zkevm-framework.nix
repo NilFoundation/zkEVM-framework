@@ -46,7 +46,6 @@ in stdenv.mkDerivation rec {
 
   doBuild = true;
   doCheck = runTests;
-  dontInstall = true;
 
   checkPhase = ''
     bash ../run_tests.sh
