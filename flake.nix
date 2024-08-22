@@ -77,7 +77,7 @@
             enableDebug = true;
             runTests = true;
           });
-          default = zkevm-framework-debug-tests;
+          default = zkevm-framework;
         };
         checks = rec {
           gcc = (pkgs.callPackage ./zkevm-framework.nix {
