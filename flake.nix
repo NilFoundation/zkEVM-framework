@@ -45,7 +45,6 @@
       let
         pkgs = import nixpkgs { inherit system; };
         stdenv = pkgs.stdenv;
-        # stdenv = pkgs.llvmPackages_16.stdenv;
         crypto3 = nil-crypto3.packages.${system}.crypto3;
         evm-assigner = nil-evm-assigner.packages.${system}.default;
         intx = nix-3rdparty.packages.${system}.intx;
