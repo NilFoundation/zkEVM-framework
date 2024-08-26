@@ -48,7 +48,7 @@ in stdenv.mkDerivation rec {
   doCheck = runTests;
 
   checkPhase = ''
-    bash ../run_tests.sh
+    ninja executables_tests && ctest
   '';
 
   shellHook = ''
