@@ -35,12 +35,8 @@ in stdenv.mkDerivation rec {
 
   cmakeFlags =
   [
-      (if runTests then "-DBUILD_TESTS=TRUE" else "")
-      (if runTests then "-DCMAKE_ENABLE_TESTS=TRUE" else "")
       (if runTests then "-DENABLE_TESTS=TRUE" else "")
       (if enableDebug then "-DCMAKE_BUILD_TYPE=Debug" else "-DCMAKE_BUILD_TYPE=Release")
-      (if enableDebug then "-DCMAKE_CXX_FLAGS=-ggdb" else "")
-      (if enableDebug then "-DCMAKE_CXX_FLAGS=-O0" else "")
       "-G Ninja"
   ];
 
@@ -48,11 +44,12 @@ in stdenv.mkDerivation rec {
   doCheck = runTests;
 
   checkPhase = ''
-    ninja executables_tests && ctest
+    ctest
+    ninja executables_tests
   '';
 
   shellHook = ''
     PS1="\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "
-    echo "Welcome to zkEVM framework development environment!"
+    echo "zkEVM-framework ${if enableDebug then "debug" else "release"} dev environment activated"
   '';
 }
