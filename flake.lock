@@ -31,17 +31,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1724160518,
-        "narHash": "sha256-ZuNrBrf9YhPZLugcK6ubHl6WwLlU1iYwDMAlIYrygg8=",
-        "ref": "refs/heads/master",
-        "rev": "e0df9de54db6e1cfe8f016aed6975aeb202820fb",
-        "revCount": 10449,
-        "type": "git",
-        "url": "https://github.com/NilFoundation/crypto3"
+        "lastModified": 1724667448,
+        "narHash": "sha256-OkrktQ6SwdRX7iz2dNzMxj4IsvDH8be0O2lW/4zuhNs=",
+        "owner": "NilFoundation",
+        "repo": "crypto3",
+        "rev": "7a23eb3010ec1045ee9fd8c812b454afe5b8ecc5",
+        "type": "github"
       },
       "original": {
-        "type": "git",
-        "url": "https://github.com/NilFoundation/crypto3"
+        "owner": "NilFoundation",
+        "repo": "crypto3",
+        "type": "github"
       }
     },
     "nil-evm-assigner": {

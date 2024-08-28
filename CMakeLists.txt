@@ -10,6 +10,9 @@ include(GNUInstallDirs)
 option(BUILD_DOCS "Build documentation" FALSE)
 option(ENABLE_TESTS "Enable tests" FALSE)
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "-ggdb -O0")
+endif()
 
 add_subdirectory(libs)
 add_subdirectory(bin)

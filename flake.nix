@@ -23,8 +23,9 @@
       };
     };
     nil-crypto3 = {
-      url = "https://github.com/NilFoundation/crypto3";
-      type = "git";
+      type = "github";
+      owner = "NilFoundation";
+      repo = "crypto3";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-utils.follows = "flake-utils";
@@ -93,10 +94,6 @@
         assigner = {
           type = "app";
           program = "${packages.default}/bin/assigner";
-        };
-        block_gen = {
-          type = "app";
-          program = "${packages.default}/bin/block_gen";
         };
       };
     }));
